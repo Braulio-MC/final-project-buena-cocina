@@ -2,12 +2,9 @@
     <string name="app_name">Buena Cocina</string>
 
     <!-- Auth0 -->
-    <string name="com_auth0_domain">a-b-c-d.us.auth0.com</string>
-    <string name="com_auth0_client_id">dmwybkP2ppCNvuSbcrBPdduPCrYvlJJF</string>
     <string name="com_auth0_scheme">app</string>
 
     <!-- Get Stream -->
-    <string name="get_stream_api_key">2ds6du487f88</string>
 
     <!-- Navigation -->
     <string name="navigation_home">Inicio</string>
