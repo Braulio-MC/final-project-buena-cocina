@@ -1,0 +1,91 @@
+<resources>
+    <string name="app_name">Buena Cocina</string>
+
+    <!-- Auth0 -->
+    <string name="com_auth0_domain">a-b-c-d.us.auth0.com</string>
+    <string name="com_auth0_client_id">dmwybkP2ppCNvuSbcrBPdduPCrYvlJJF</string>
+    <string name="com_auth0_scheme">app</string>
+
+    <!-- Get Stream -->
+    <string name="get_stream_api_key">2ds6du487f88</string>
+
+    <!-- Navigation -->
+    <string name="navigation_home">Inicio</string>
+    <string name="navigation_shopping_cart">Carrito</string>
+    <string name="navigation_order_history">Historial</string>
+    <string name="navigation_chat">Mensajes</string>
+    <string name="navigation_profile">Perfil</string>
+    <string name="navigation_home_content_desc">Navigation item for home</string>
+    <string name="navigation_order_history_content_desc">Navigation item for order history</string>
+    <string name="navigation_shopping_cart_content_desc">Navigation item for shopping cart</string>
+    <string name="navigation_chat_content_desc">Navigation item for chat</string>
+    <string name="navigation_profile_content_desc">Navigation item for profile</string>
+
+    <!-- UI text data errors -->
+    <string name="ui_text_data_error_local_not_found">El recurso no pudo ser encontrado localmente</string>
+    <string name="ui_text_data_error_local_deletion_failed">El recurso no pudo ser eliminado localmente</string>
+    <string name="ui_text_data_error_local_update_failed">El recurso no pudo ser actualizado localmente</string>
+    <string name="ui_text_data_error_local_creation_failed">El recurso no pudo ser creado localmente</string>
+    <string name="ui_text_data_error_local_resource_already_created">El recurso ya existe localmente</string>
+    <string name="ui_text_data_error_local_cart_store_mismatch">El carrito ya se asigno a otra tienda</string>
+    <string name="ui_text_data_error_network_server_unavailable">No se pudo establecer conexion con el servidor</string>
+    <string name="ui_text_data_error_network_not_found">El recurso no pudo ser encontrado remotamente</string>
+    <string name="ui_text_data_error_network_bad_request">La solicitud es incorrecta</string>
+    <string name="ui_text_data_error_network_unauthorized">No tienes permisos para acceder al recurso</string>
+    <string name="ui_text_data_error_network_unprocessable_content">La solicitud no pudo ser procesada</string>
+    <string name="ui_text_data_error_network_internal_server_error">Hubo un error inesperado, intentalo mas tarde</string>
+    <string name="ui_text_data_error_network_unknown">No se pudo determinar el error, intentalo mas tarde</string>
+
+    <!-- UI text form errors -->
+    <string name="ui_text_form_error_shopping_cart_location_not_selected">Selecciona una direccion de entrega</string>
+    <string name="ui_text_form_error_shopping_cart_payment_method_not_selected">Selecciona un metodo de pago</string>
+    <string name="ui_text_form_error_shopping_cart_error_not_valid">El carrito no es valido</string>
+    <string name="ui_text_form_error_shopping_cart_items_are_empty">No hay productos en el carrito</string>
+
+    <!-- Common -->
+    <string name="common_no_internet_error">No hay conexion a internet\n\nComprueba tu fuente de internet y vuelve a intentarlo</string>
+
+    <!-- Drawer navigation -->
+    <string name="home_screen_title">Inicio</string>
+    <string name="shopping_cart_screen_title">Carrito</string>
+    <string name="order_history_screen_title">Historial de pedidos</string>
+    <string name="profile_screen_title">Datos de usuario</string>
+    <string name="back_navigation_button">Back navigation</string>
+
+    <!-- Search -->
+    <string name="search_button_text">Buscar tiendas o productos</string>
+    <string name="search_bar_icon_content_desc">Search</string>
+
+    <!-- Detailed store -->
+
+    <!-- Detailed store item -->
+    <string name="detailed_store_item_error_msg">Ha ocurrido un error al recuperar los datos\nEstamos trabajando en solucionarlo</string>
+    <string name="detailed_store_item_error_no_internet_msg">En este momento no tienes conexion a internet</string>
+
+    <!-- Restaurant category -->
+    <string name="restaurant_cat_screen_title">Tiendas</string>
+    <string name="restaurant_cat_stores_favorite">Tus tiendas favoritas</string>
+    <string name="restaurant_cat_stores_best_rated">Tiendas mejor calificadas</string>
+    <string name="restaurant_cat_stores_explore">Explora</string>
+    <string name="restaurant_cat_specific_img_content_desc">Specific category image</string>
+
+    <!-- Shopping cart -->
+    <string name="shopping_cart_empty_msg">No hay productos en el carrito</string>
+    <string name="shopping_cart_items_not_found">No se encontraron productos</string>
+    <string name="shopping_cart_delivery_location_msg">Direccion de entrega</string>
+    <string name="shopping_cart_empty_delivery_location">Selecciona una direccion de entrega</string>
+    <string name="shopping_cart_delivery_location_arrow_icon">Show more delivery locations</string>
+    <string name="shopping_cart_payment_method_msg">Metodo de pago</string>
+    <string name="shopping_cart_empty_payment_method">Selecciona un metodo de pago</string>
+    <string name="shopping_cart_payment_method_arrow_icon">Show more payment methods</string>
+
+    <!-- Shopping cart item -->
+    <string name="shopping_cart_item_image_content_desc">Product image</string>
+    <string name="shopping_cart_item_decrease_button_content_desc">Decrease item quantity</string>
+    <string name="shopping_cart_item_increase_button_content_desc">Increase item quantity</string>
+
+    <!-- Shopping cart empty bottom sheet -->
+    <string name="shopping_cart_empty_bottom_sheet_title">Direccion de entrega</string>
+    <string name="shopping_cart_empty_bottom_sheet_desc">Agrega productos al carrito para poder elegir la direccion de entrega</string>
+    <string name="shopping_cart_empty_bottom_sheet_explore_stores_button">Explorar tiendas</string>
+</resources>
