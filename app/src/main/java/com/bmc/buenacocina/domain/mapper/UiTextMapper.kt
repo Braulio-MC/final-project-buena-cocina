@@ -1,6 +1,10 @@
 package com.bmc.buenacocina.domain.mapper
 
 import com.bmc.buenacocina.R
+import com.bmc.buenacocina.core.PRODUCT_REVIEW_MAXIMUM_COMMENT_LENGTH
+import com.bmc.buenacocina.core.PRODUCT_REVIEW_MINIMUM_COMMENT_LENGTH
+import com.bmc.buenacocina.core.STORE_REVIEW_MAXIMUM_COMMENT_LENGTH
+import com.bmc.buenacocina.core.STORE_REVIEW_MINIMUM_COMMENT_LENGTH
 import com.bmc.buenacocina.domain.error.DataError
 import com.bmc.buenacocina.domain.Result
 import com.bmc.buenacocina.domain.UiText
@@ -64,6 +68,29 @@ object UiTextMapper {
             FormError.ShoppingCartPaymentMethodError.NOT_SELECTED -> UiText.StringResource(R.string.ui_text_form_error_shopping_cart_payment_method_not_selected)
             FormError.ShoppingCartError.NOT_VALID -> UiText.StringResource(R.string.ui_text_form_error_shopping_cart_error_not_valid)
             FormError.ShoppingCartItemsError.ITEMS_ARE_EMPTY -> UiText.StringResource(R.string.ui_text_form_error_shopping_cart_items_are_empty)
+            FormError.OrderError.NOT_VALID -> UiText.StringResource(R.string.ui_text_form_error_order_not_valid)
+            FormError.ProductReviewCommentError.NOT_VALID -> UiText.StringResource(R.string.ui_text_form_error_product_review_not_valid)
+            FormError.ProductReviewCommentError.COMMENT_IS_BLANK -> UiText.StringResource(R.string.ui_text_form_error_product_review_is_blank)
+            FormError.ProductReviewCommentError.COMMENT_IS_TOO_SHORT -> UiText.StringResource(
+                R.string.ui_text_form_error_product_review_is_too_short,
+                arrayOf(PRODUCT_REVIEW_MINIMUM_COMMENT_LENGTH)
+            )
+            FormError.ProductReviewCommentError.COMMENT_IS_TOO_LONG -> UiText.StringResource(
+                R.string.ui_text_form_error_product_review_is_too_long,
+                arrayOf(PRODUCT_REVIEW_MAXIMUM_COMMENT_LENGTH)
+            )
+            FormError.ProductReviewRatingError.NOT_VALID -> UiText.StringResource(R.string.ui_text_form_error_product_review_rating_is_invalid)
+            FormError.StoreReviewCommentError.NOT_VALID -> UiText.StringResource(R.string.ui_text_form_error_store_review_not_valid)
+            FormError.StoreReviewCommentError.COMMENT_IS_BLANK -> UiText.StringResource(R.string.ui_text_form_error_store_review_is_blank)
+            FormError.StoreReviewCommentError.COMMENT_IS_TOO_SHORT -> UiText.StringResource(
+                R.string.ui_text_form_error_store_review_is_too_short,
+                arrayOf(STORE_REVIEW_MINIMUM_COMMENT_LENGTH)
+            )
+            FormError.StoreReviewCommentError.COMMENT_IS_TOO_LONG -> UiText.StringResource(
+                R.string.ui_text_form_error_store_review_is_too_long,
+                arrayOf(STORE_REVIEW_MAXIMUM_COMMENT_LENGTH)
+            )
+            FormError.StoreReviewRatingError.NOT_VALID -> UiText.StringResource(R.string.ui_text_form_error_store_review_rating_is_invalid)
         }
     }
 }

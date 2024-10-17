@@ -1,11 +1,10 @@
 package com.bmc.buenacocina.di
 
 import android.content.Context
-import androidx.datastore.core.DataStore
-import androidx.datastore.preferences.core.PreferenceDataStoreFactory
-import androidx.datastore.preferences.core.Preferences
-import androidx.datastore.preferences.preferencesDataStoreFile
-import com.bmc.buenacocina.core.DATA_STORE_PREFERENCES_FILE_NAME
+import android.content.SharedPreferences
+import androidx.security.crypto.EncryptedSharedPreferences
+import androidx.security.crypto.MasterKey
+import com.bmc.buenacocina.core.SHARED_PREFERENCES_FILE_NAME
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -18,9 +17,24 @@ import javax.inject.Singleton
 object PreferencesModule {
     @Provides
     @Singleton
-    fun providePreferencesDataStore(@ApplicationContext appContext: Context): DataStore<Preferences> {
-        return PreferenceDataStoreFactory.create(
-            produceFile = { appContext.preferencesDataStoreFile(DATA_STORE_PREFERENCES_FILE_NAME) }
+    fun provideMasterKeyAlias(@ApplicationContext context: Context): MasterKey {
+        return MasterKey.Builder(context)
+            .setKeyScheme(MasterKey.KeyScheme.AES256_GCM)
+            .build()
+    }
+
+    @Provides
+    @Singleton
+    fun provideEncryptedSharedPreferences(
+        @ApplicationContext context: Context,
+        masterKey: MasterKey
+    ): SharedPreferences {
+        return EncryptedSharedPreferences.create(
+            context,
+            SHARED_PREFERENCES_FILE_NAME,
+            masterKey,
+            EncryptedSharedPreferences.PrefKeyEncryptionScheme.AES256_SIV,
+            EncryptedSharedPreferences.PrefValueEncryptionScheme.AES256_GCM
         )
     }
 }

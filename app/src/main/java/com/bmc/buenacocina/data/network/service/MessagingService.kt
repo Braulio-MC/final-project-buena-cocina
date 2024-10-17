@@ -1,12 +1,10 @@
 package com.bmc.buenacocina.data.network.service
 
-import com.bmc.buenacocina.data.network.dto.CreateMessageDto
+import com.bmc.buenacocina.data.network.dto.CreateNotificationDto
 import com.google.firebase.functions.FirebaseFunctions
-import com.google.firebase.messaging.FirebaseMessaging
 import javax.inject.Inject
 
 class MessagingService @Inject constructor(
-    private val messaging: FirebaseMessaging,
     private val functions: FirebaseFunctions
 ) {
     fun createTopic(
@@ -34,7 +32,7 @@ class MessagingService @Inject constructor(
 
     fun sendMessageToTopic(
         topic: String,
-        dto: CreateMessageDto,
+        dto: CreateNotificationDto,
         onSuccess: () -> Unit,
         onFailure: (Exception) -> Unit
     ) {
@@ -50,6 +48,33 @@ class MessagingService @Inject constructor(
         )
         functions
             .getHttpsCallable("messaging-sendMessageToTopic")
+            .call(fParams)
+            .addOnSuccessListener {
+                onSuccess()
+            }
+            .addOnFailureListener { e ->
+                onFailure(e)
+            }
+    }
+
+    fun sendMessageToUserDevices(
+        userId: String,
+        dto: CreateNotificationDto,
+        onSuccess: () -> Unit,
+        onFailure: (Exception) -> Unit
+    ) {
+        val fParams = hashMapOf(
+            "userId" to userId,
+            "message" to hashMapOf(
+                "notification" to hashMapOf(
+                    "title" to dto.notification.title,
+                    "body" to dto.notification.body
+                ),
+                "data" to dto.data
+            )
+        )
+        functions
+            .getHttpsCallable("messaging-sendMessageToUserDevices")
             .call(fParams)
             .addOnSuccessListener {
                 onSuccess()

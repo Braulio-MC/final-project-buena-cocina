@@ -9,6 +9,7 @@ object OrderMapper {
         return OrderDomain(
             id = network.documentId,
             status = network.status,
+            rated = network.rated,
             user = OrderDomain.OrderUserDomain(
                 id = network.user.id,
                 name = network.user.name
@@ -19,6 +20,7 @@ object OrderMapper {
             ),
             store = OrderDomain.OrderStoreDomain(
                 id = network.store.id,
+                ownerId = network.store.ownerId,
                 name = network.store.name
             ),
             paymentMethod = OrderDomain.OrderPaymentMethodDomain(

@@ -17,6 +17,7 @@ data class ShoppingCartNetwork (
 ) {
     data class ShoppingCartStoreNetwork(
         val id: String = "",
+        val ownerId: String = "",
         val name: String = ""
     )
 }

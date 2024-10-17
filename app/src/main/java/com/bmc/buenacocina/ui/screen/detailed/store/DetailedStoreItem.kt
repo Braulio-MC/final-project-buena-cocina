@@ -1,6 +1,5 @@
 package com.bmc.buenacocina.ui.screen.detailed.store
 
-import android.util.Log
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -38,12 +37,12 @@ import com.bmc.buenacocina.core.DateUtils
 import com.bmc.buenacocina.domain.model.ProductDomain
 import java.math.BigDecimal
 import java.time.LocalDateTime
-import java.util.Calendar
 
 @Composable
 fun DetailedStoreItem(
     product: ProductDomain,
-    onClick: (String) -> Unit
+    storeOwnerId: String,
+    onClick: (String, String) -> Unit
 ) {
     var discountPercentage: BigDecimal? = null
     if (product.discount.startDate != null && product.discount.endDate != null) {
@@ -68,7 +67,7 @@ fun DetailedStoreItem(
             .padding(5.dp)
             .size(100.dp, 190.dp)
             .clickable {
-                onClick(product.id)
+                onClick(product.id, storeOwnerId)
             }
     ) {
         Column {

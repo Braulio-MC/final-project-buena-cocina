@@ -11,6 +11,7 @@ data class ShoppingCartDomain(
 ) {
     data class ShoppingCartStoreDomain(
         val id: String,
+        val ownerId: String,
         val name: String
     )
 }

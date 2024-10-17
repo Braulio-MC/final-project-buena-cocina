@@ -51,7 +51,8 @@ class DetailedProductViewModel @AssistedInject constructor(
     private val shoppingCartRepository: ShoppingCartRepository,
     private val userRepository: UserRepository,
     connectivityRepository: ConnectivityRepository,
-    @Assisted private val productId: String
+    @Assisted("productId") private val productId: String,
+    @Assisted("storeOwnerId") private val storeOwnerId: String
 ) : ViewModel() {
     private val mutex = Mutex()
     private val _resultState = MutableStateFlow(DetailedProductUiResultState())
@@ -249,7 +250,7 @@ class DetailedProductViewModel @AssistedInject constructor(
                         val dtoCart = makeCreateShoppingCartDto(resultUser.data, product)
                         try {
                             val dtoItem = makeCreateShoppingCartItemDto(product)
-                            shoppingCartRepository.upsertItem(
+                            shoppingCartRepository.upsert(
                                 dtoCart,
                                 dtoItem,
                                 product.store.id,
@@ -276,6 +277,7 @@ class DetailedProductViewModel @AssistedInject constructor(
         return CreateShoppingCartDto(
             userId = userId,
             storeId = product.store.id,
+            storeOwnerId = storeOwnerId,
             storeName = product.store.name
         )
     }
@@ -322,7 +324,10 @@ class DetailedProductViewModel @AssistedInject constructor(
 
     @AssistedFactory
     interface DetailedProductViewModelFactory {
-        fun create(productId: String): DetailedProductViewModel
+        fun create(
+            @Assisted("productId") productId: String,
+            @Assisted("storeOwnerId") storeOwnerId: String
+        ): DetailedProductViewModel
     }
 
     sealed class DetailedProductEvent {

@@ -1,6 +1,5 @@
 package com.bmc.buenacocina.ui.navigation.graph
 
-import android.content.Context
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.windowsizeclass.WindowSizeClass
 import androidx.navigation.NavGraphBuilder
@@ -13,6 +12,7 @@ import com.bmc.buenacocina.ui.screen.category.restaurant.StoreScreen
 import com.bmc.buenacocina.ui.screen.chat.ChatScreen
 import com.bmc.buenacocina.ui.screen.chat.DetailedChatScreen
 import com.bmc.buenacocina.ui.screen.detailed.order.DetailedOrderScreen
+import com.bmc.buenacocina.ui.screen.detailed.order.rating.DetailedOrderRatingScreen
 import com.bmc.buenacocina.ui.screen.detailed.product.DetailedProductScreen
 import com.bmc.buenacocina.ui.screen.detailed.store.DetailedStoreScreen
 import com.bmc.buenacocina.ui.screen.home.HomeScreen
@@ -20,9 +20,7 @@ import com.bmc.buenacocina.ui.screen.orderhistory.OrderHistoryScreen
 import com.bmc.buenacocina.ui.screen.search.SearchScreen
 import com.bmc.buenacocina.ui.screen.shoppingcart.ShoppingCartScreen
 import io.getstream.chat.android.compose.viewmodel.channels.ChannelViewModelFactory
-import io.getstream.chat.android.compose.viewmodel.messages.MessagesViewModelFactory
 import io.getstream.chat.android.models.Channel
-import io.getstream.chat.android.ui.common.state.messages.list.DeletedMessageVisibility
 
 fun NavGraphBuilder.mainGraph(
     windowSizeClass: WindowSizeClass,
@@ -32,17 +30,22 @@ fun NavGraphBuilder.mainGraph(
     onStoreCategoryButton: () -> Unit,
     onStoreCategoryStore: (String) -> Unit,
     onDetailedStoreBackButton: () -> Unit,
-    onDetailedStoreProductClick: (String) -> Unit,
+    onDetailedStoreProductClick: (String, String) -> Unit,
     onDetailedProductBackButton: () -> Unit,
     onProductAddedToCartSuccessful: () -> Unit,
     onOrderHistoryBackButton: () -> Unit,
     onOrderHistoryItemClick: (String) -> Unit,
     onDetailedOrderBackButton: () -> Unit,
+    onDetailedOrderChannelCreatedSuccessful: (String) -> Unit,
+    onDetailedOrderOrderRating: (String) -> Unit,
+    onDetailedOrderOrderRatingUpdatedSuccessful: () -> Unit,
+    onDetailedOrderRatingBackButton: () -> Unit,
     onShoppingCartBackButton: () -> Unit,
     onShoppingCartExploreStoresButton: () -> Unit,
     onShoppingCartSuccessfulOrderCreated: () -> Unit,
     onChatBackButton: () -> Unit,
     onChatItemClick: (Channel) -> Unit,
+    onDetailedChatBackButton: () -> Unit,
     onLogoutButton: (Boolean) -> Unit
 ) {
     navigation(
@@ -79,7 +82,14 @@ fun NavGraphBuilder.mainGraph(
         )
         detailedOrderScreen(
             windowSizeClass = windowSizeClass,
+            onChannelCreatedSuccessful = onDetailedOrderChannelCreatedSuccessful,
+            onOrderRating = onDetailedOrderOrderRating,
             onBackButton = onDetailedOrderBackButton
+        )
+        detailedOrderRatingScreen(
+            windowSizeClass = windowSizeClass,
+            onOrderRatingUpdatedSuccessful = onDetailedOrderOrderRatingUpdatedSuccessful,
+            onBackButton = onDetailedOrderRatingBackButton
         )
         shoppingCartScreen(
             windowSizeClass = windowSizeClass,
@@ -91,6 +101,9 @@ fun NavGraphBuilder.mainGraph(
             viewModel = channelViewModelFactory,
             onItemClick = onChatItemClick,
             onBackButton = onChatBackButton
+        )
+        detailedChatScreen(
+            onBackButton = onDetailedChatBackButton
         )
     }
 }
@@ -138,7 +151,7 @@ fun NavGraphBuilder.storeCategoryScreen(
 @OptIn(ExperimentalMaterial3Api::class)
 fun NavGraphBuilder.detailedStoreScreen(
     windowSizeClass: WindowSizeClass,
-    onProductClick: (String) -> Unit,
+    onProductClick: (String, String) -> Unit,
     onBackButton: () -> Unit
 ) {
     composable<Screen.MainSerializable.StoreDetailed> {
@@ -163,6 +176,7 @@ fun NavGraphBuilder.detailedProductScreen(
         DetailedProductScreen(
             windowSizeClass = windowSizeClass,
             productId = nav.productId,
+            storeOwnerId = nav.storeOwnerId,
             onProductAddedToCartSuccessful = onProductAddedToCartSuccessful,
             onBackButton = onBackButton
         )
@@ -187,6 +201,8 @@ fun NavGraphBuilder.orderHistoryScreen(
 @OptIn(ExperimentalMaterial3Api::class)
 fun NavGraphBuilder.detailedOrderScreen(
     windowSizeClass: WindowSizeClass,
+    onChannelCreatedSuccessful: (String) -> Unit,
+    onOrderRating: (String) -> Unit,
     onBackButton: () -> Unit
 ) {
     composable<Screen.MainSerializable.OrderDetailed> {
@@ -194,6 +210,25 @@ fun NavGraphBuilder.detailedOrderScreen(
         DetailedOrderScreen(
             windowSizeClass = windowSizeClass,
             orderId = nav.orderId,
+            onChannelCreatedSuccessful = onChannelCreatedSuccessful,
+            onOrderRating = onOrderRating,
+            onBackButton = onBackButton
+        )
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+fun NavGraphBuilder.detailedOrderRatingScreen(
+    windowSizeClass: WindowSizeClass,
+    onOrderRatingUpdatedSuccessful: () -> Unit,
+    onBackButton: () -> Unit
+) {
+    composable<Screen.MainSerializable.OrderRating> {
+        val nav = it.toRoute<Screen.MainSerializable.OrderRating>()
+        DetailedOrderRatingScreen(
+            windowSizeClass = windowSizeClass,
+            orderId = nav.orderId,
+            onOrderRatingUpdatedSuccessful = onOrderRatingUpdatedSuccessful,
             onBackButton = onBackButton
         )
     }
@@ -231,21 +266,12 @@ fun NavGraphBuilder.chatScreen(
 }
 
 fun NavGraphBuilder.detailedChatScreen(
-    context: Context,
     onBackButton: () -> Unit
 ) {
     composable<Screen.MainSerializable.ChatDetailed> {
         val nav = it.toRoute<Screen.MainSerializable.ChatDetailed>()
-        val factory by lazy {
-            MessagesViewModelFactory(
-                context = context,
-                channelId = nav.channelId,
-                autoTranslationEnabled = true,
-                deletedMessageVisibility = DeletedMessageVisibility.ALWAYS_VISIBLE,
-            )
-        }
         DetailedChatScreen(
-            viewModelFactory = factory,
+            channelId = nav.channelId,
             onBackButton = onBackButton
         )
     }

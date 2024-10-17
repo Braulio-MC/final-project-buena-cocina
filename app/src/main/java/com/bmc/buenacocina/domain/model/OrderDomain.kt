@@ -5,6 +5,7 @@ import java.time.LocalDateTime
 data class OrderDomain(
     val id: String,
     val status: String,
+    val rated: Boolean,
     val user: OrderUserDomain,
     val deliveryLocation: OrderDeliveryLocationDomain,
     val store: OrderStoreDomain,
@@ -24,6 +25,7 @@ data class OrderDomain(
 
     data class OrderStoreDomain(
         val id: String,
+        val ownerId: String,
         val name: String
     )
 

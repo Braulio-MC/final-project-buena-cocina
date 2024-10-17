@@ -2,10 +2,12 @@ package com.bmc.buenacocina.data.network.service
 
 import com.bmc.buenacocina.core.ORDER_COLLECTION_NAME
 import com.bmc.buenacocina.data.network.dto.CreateOrderDto
+import com.bmc.buenacocina.data.network.dto.UpdateOrderDto
 import com.bmc.buenacocina.data.network.model.OrderNetwork
 import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.Query
+import com.google.firebase.functions.FirebaseFunctions
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
@@ -13,7 +15,8 @@ import java.util.UUID
 import javax.inject.Inject
 
 class OrderService @Inject constructor(
-    private val firestore: FirebaseFirestore
+    private val firestore: FirebaseFirestore,
+    private val functions: FirebaseFunctions
 ) {
     fun create(
         dto: CreateOrderDto,
@@ -24,6 +27,7 @@ class OrderService @Inject constructor(
         val new = hashMapOf(
             "id" to docRef.id,
             "status" to dto.status,
+            "rated" to dto.rated,
             "user" to hashMapOf(
                 "id" to dto.user.id,
                 "name" to dto.user.name
@@ -34,6 +38,7 @@ class OrderService @Inject constructor(
             ),
             "store" to hashMapOf(
                 "id" to dto.store.id,
+                "ownerId" to dto.store.ownerId,
                 "name" to dto.store.name
             ),
             "paymentMethod" to hashMapOf(
@@ -48,8 +53,48 @@ class OrderService @Inject constructor(
             .addOnSuccessListener {
                 onSuccess(docRef.id)
             }
-            .addOnFailureListener {
-                onFailure(it)
+            .addOnFailureListener { e ->
+                onFailure(e)
+            }
+    }
+
+    fun update(
+        id: String,
+        dto: UpdateOrderDto,
+        onSuccess: () -> Unit,
+        onFailure: (Exception) -> Unit
+    ) {
+        val docRef = firestore.collection(ORDER_COLLECTION_NAME).document(id)
+        val update = hashMapOf(
+            "rated" to dto.rated,
+            "updatedAt" to FieldValue.serverTimestamp()
+        )
+        docRef.update(update)
+            .addOnSuccessListener {
+                onSuccess()
+            }
+            .addOnFailureListener { e ->
+                onFailure(e)
+            }
+    }
+
+    fun delete(
+        id: String,
+        onSuccess: () -> Unit,
+        onFailure: (Exception) -> Unit
+    ) {
+        val fParams = hashMapOf(
+            "collectionName" to ORDER_COLLECTION_NAME,
+            "documentId" to id
+        )
+        functions
+            .getHttpsCallable("recursiveCollectionDelete")
+            .call(fParams)
+            .addOnSuccessListener {
+                onSuccess()
+            }
+            .addOnFailureListener { e ->
+                onFailure(e)
             }
     }
 

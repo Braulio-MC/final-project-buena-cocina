@@ -7,7 +7,8 @@ import androidx.paging.map
 import com.bmc.buenacocina.core.PAGING_PAGE_SIZE
 import com.bmc.buenacocina.data.network.dto.CreateOrderDto
 import com.bmc.buenacocina.data.network.dto.CreateOrderLineDto
-import com.bmc.buenacocina.data.network.service.OrderLineService
+import com.bmc.buenacocina.data.network.dto.UpdateOrderDto
+import com.bmc.buenacocina.data.network.service.OrderOrderLineMediator
 import com.bmc.buenacocina.data.network.service.OrderService
 import com.bmc.buenacocina.data.paging.OrderPagingSource
 import com.bmc.buenacocina.domain.mapper.asDomain
@@ -20,7 +21,7 @@ import javax.inject.Inject
 
 class OrderRepository @Inject constructor(
     private val orderService: OrderService,
-    private val orderLineService: OrderLineService,
+    private val orderOrderLineMediator: OrderOrderLineMediator,
     private val firestore: FirebaseFirestore
 ) {
     fun create(
@@ -29,20 +30,24 @@ class OrderRepository @Inject constructor(
         onSuccess: (String) -> Unit,
         onFailure: (Exception) -> Unit
     ) {
-        orderService.create(
-            dto,
-            onSuccess = { orderId ->
-                orderLineService.createAsBatch(
-                    orderId,
-                    lines,
-                    onSuccess = {
-                        onSuccess(orderId)
-                    },
-                    onFailure
-                )
-            },
-            onFailure
-        )
+        orderOrderLineMediator.createOrderWithOrderLines(dto, lines, onSuccess, onFailure)
+    }
+
+    fun update(
+        id: String,
+        dto: UpdateOrderDto,
+        onSuccess: () -> Unit,
+        onFailure: (Exception) -> Unit
+    ) {
+        orderService.update(id, dto, onSuccess, onFailure)
+    }
+
+    fun delete(
+        id: String,
+        onSuccess: () -> Unit,
+        onFailure: (Exception) -> Unit
+    ) {
+        orderService.delete(id, onSuccess, onFailure)
     }
 
     fun get(id: String): Flow<OrderDomain?> {

@@ -1,50 +1,43 @@
 package com.bmc.buenacocina.data.preferences
 
-import androidx.datastore.core.DataStore
-import androidx.datastore.preferences.core.Preferences
-import androidx.datastore.preferences.core.edit
-import androidx.datastore.preferences.core.stringPreferencesKey
+import android.content.SharedPreferences
 import com.bmc.buenacocina.data.network.model.GetStreamUserCredentials
-import com.bmc.buenacocina.di.AppDispatcher
-import com.bmc.buenacocina.di.AppDispatchers
 import io.getstream.chat.android.models.User
-import kotlinx.coroutines.CoroutineDispatcher
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 class PreferencesService @Inject constructor(
-    private val dataStore: DataStore<Preferences>,
-    @AppDispatcher(AppDispatchers.IO) private val ioDispatcher: CoroutineDispatcher
+    private val sharedPreferences: SharedPreferences
 ) : IPreferences {
-    override suspend fun set(key: String, value: String) {
-        val preferencesKey = stringPreferencesKey(key)
-        dataStore.edit { preferences ->
-            preferences[preferencesKey] = value
+    override fun set(key: String, value: String) {
+        with(sharedPreferences.edit()) {
+            putString(key, value)
+            apply()
         }
     }
 
-    fun saveUserCredentials(credentials: GetStreamUserCredentials) {
+    override fun saveUserCredentials(credentials: GetStreamUserCredentials) {
         with(credentials) {
-            CoroutineScope(ioDispatcher).launch {
-                dataStore.edit { preferences ->
-                    preferences[stringPreferencesKey(KEY_API_KEY)] = apiKey
-                    preferences[stringPreferencesKey(KEY_USER_ID)] = user.id
-                    preferences[stringPreferencesKey(KEY_USER_NAME)] = user.name
-                    preferences[stringPreferencesKey(KEY_USER_IMAGE)] = user.image
-                    preferences[stringPreferencesKey(KEY_USER_TOKEN)] = token
-                }
+            with(sharedPreferences.edit()) {
+                putString(KEY_API_KEY, apiKey)
+                putString(KEY_USER_ID, user.id)
+                putString(KEY_USER_NAME, user.name)
+                putString(KEY_USER_IMAGE, user.image)
+                putString(KEY_USER_TOKEN, token)
+                apply()
             }
         }
     }
 
-    suspend fun getUserCredentials(): GetStreamUserCredentials? {
-        val apiKey = dataStore.data.first()[stringPreferencesKey(KEY_API_KEY)] ?: return null
-        val userId = dataStore.data.first()[stringPreferencesKey(KEY_USER_ID)] ?: return null
-        val userName = dataStore.data.first()[stringPreferencesKey(KEY_USER_NAME)] ?: return null
-        val userImage = dataStore.data.first()[stringPreferencesKey(KEY_USER_IMAGE)] ?: return null
-        val token = dataStore.data.first()[stringPreferencesKey(KEY_USER_TOKEN)] ?: return null
+    override fun get(key: String): String? {
+        return sharedPreferences.getString(key, null)
+    }
+
+    override fun getUserCredentials(): GetStreamUserCredentials? {
+        val apiKey = sharedPreferences.getString(KEY_API_KEY, null) ?: return null
+        val userId = sharedPreferences.getString(KEY_USER_ID, null) ?: return null
+        val userName = sharedPreferences.getString(KEY_USER_NAME, null) ?: return null
+        val userImage = sharedPreferences.getString(KEY_USER_IMAGE, null) ?: return null
+        val token = sharedPreferences.getString(KEY_USER_TOKEN, null) ?: return null
 
         return GetStreamUserCredentials(
             apiKey = apiKey,
@@ -57,32 +50,28 @@ class PreferencesService @Inject constructor(
         )
     }
 
-    suspend fun clearUserCredentials() {
-        dataStore.edit { preferences ->
-            preferences.remove(stringPreferencesKey(KEY_API_KEY))
-            preferences.remove(stringPreferencesKey(KEY_USER_ID))
-            preferences.remove(stringPreferencesKey(KEY_USER_NAME))
-            preferences.remove(stringPreferencesKey(KEY_USER_IMAGE))
-            preferences.remove(stringPreferencesKey(KEY_USER_TOKEN))
+    override fun remove(key: String) {
+        with(sharedPreferences.edit()) {
+            remove(key)
+            apply()
         }
     }
 
-    override suspend fun get(key: String): String? {
-        val preferencesKey = stringPreferencesKey(key)
-        val preferences = dataStore.data.first()
-        return preferences[preferencesKey]
-    }
-
-    override suspend fun remove(key: String) {
-        val preferencesKey = stringPreferencesKey(key)
-        dataStore.edit { preferences ->
-            preferences.remove(preferencesKey)
+    override fun clearUserCredentials() {
+        with(sharedPreferences.edit()) {
+            remove(KEY_API_KEY)
+            remove(KEY_USER_ID)
+            remove(KEY_USER_NAME)
+            remove(KEY_USER_IMAGE)
+            remove(KEY_USER_TOKEN)
+            apply()
         }
     }
 
-    override suspend fun clear() {
-        dataStore.edit { preferences ->
-            preferences.clear()
+    override fun clear() {
+        with(sharedPreferences.edit()) {
+            clear()
+            apply()
         }
     }
 
