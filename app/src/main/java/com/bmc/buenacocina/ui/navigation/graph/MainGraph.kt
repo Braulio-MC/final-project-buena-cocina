@@ -6,6 +6,7 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import com.bmc.buenacocina.ui.navigation.Graph
 import com.bmc.buenacocina.ui.navigation.Screen
+import dagger.hilt.android.qualifiers.ApplicationContext
 import io.getstream.chat.android.compose.viewmodel.channels.ChannelViewModelFactory
 
 @Composable
@@ -18,8 +19,11 @@ fun MainGraph(
     onDetailedProductBackButton: () -> Unit,
     onOrderHistoryBackButton: () -> Unit,
     onDetailedOrderBackButton: () -> Unit,
+    onDetailedOrderOrderRatingUpdatedSuccessful: () -> Unit,
+    onDetailedOrderRatingBackButton: () -> Unit,
     onShoppingCartBackButton: () -> Unit,
     onChatBackButton: () -> Unit,
+    onDetailedChatBackButton: () -> Unit,
     onLogoutButton: (Boolean) -> Unit
 ) {
     NavHost(
@@ -46,8 +50,8 @@ fun MainGraph(
                 }
             },
             onDetailedStoreBackButton = onDetailedStoreBackButton,
-            onDetailedStoreProductClick = { productId ->
-                navController.navigate(Screen.MainSerializable.ProductDetailed(productId)) {
+            onDetailedStoreProductClick = { productId, storeOwnerId ->
+                navController.navigate(Screen.MainSerializable.ProductDetailed(productId, storeOwnerId)) {
                     launchSingleTop = true
                 }
             },
@@ -60,6 +64,21 @@ fun MainGraph(
                 }
             },
             onDetailedOrderBackButton = onDetailedOrderBackButton,
+            onDetailedOrderChannelCreatedSuccessful = { channelId ->
+                navController.navigate(Screen.MainSerializable.ChatDetailed(channelId)) {
+                    popUpTo(Screen.Main.OrderHistory.route) {
+                        inclusive = true
+                    }
+                    launchSingleTop = true
+                }
+            },
+            onDetailedOrderOrderRating = { orderId ->
+                navController.navigate(Screen.MainSerializable.OrderRating(orderId)) {
+                    launchSingleTop = true
+                }
+            },
+            onDetailedOrderOrderRatingUpdatedSuccessful = onDetailedOrderOrderRatingUpdatedSuccessful,
+            onDetailedOrderRatingBackButton = onDetailedOrderRatingBackButton,
             onShoppingCartBackButton = onShoppingCartBackButton,
             onShoppingCartExploreStoresButton = {
                 navController.navigate(Screen.Main.StoreCategory.route) {
@@ -78,7 +97,12 @@ fun MainGraph(
                 }
             },
             onChatBackButton = onChatBackButton,
-            onChatItemClick = { channel -> },
+            onChatItemClick = { channel ->
+                navController.navigate(Screen.MainSerializable.ChatDetailed(channel.cid)) {
+                    launchSingleTop = true
+                }
+            },
+            onDetailedChatBackButton = onDetailedChatBackButton,
             onLogoutButton = onLogoutButton
         )
     }

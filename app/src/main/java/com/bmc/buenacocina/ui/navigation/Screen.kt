@@ -15,10 +15,17 @@ sealed interface Screen {
     sealed class MainSerializable : Screen {
         @Serializable
         data class StoreDetailed(val storeId: String) : MainSerializable()
+
         @Serializable
-        data class ProductDetailed(val productId: String) : MainSerializable()
+        data class ProductDetailed(val productId: String, val storeOwnerId: String) :
+            MainSerializable()
+
         @Serializable
         data class OrderDetailed(val orderId: String) : MainSerializable()
+
+        @Serializable
+        data class OrderRating(val orderId: String) : MainSerializable()
+
         @Serializable
         data class ChatDetailed(val channelId: String) : MainSerializable()
     }

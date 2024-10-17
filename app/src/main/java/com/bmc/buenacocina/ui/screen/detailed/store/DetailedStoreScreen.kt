@@ -86,7 +86,7 @@ fun DetailedStoreScreen(
     topAppBarState: TopAppBarState = rememberTopAppBarState(),
     scrollState: ScrollState = rememberScrollState(),
     scrollBehavior: TopAppBarScrollBehavior = TopAppBarDefaults.pinnedScrollBehavior(topAppBarState),
-    onProductClick: (String) -> Unit,
+    onProductClick: (String, String) -> Unit,
     onBackButton: () -> Unit
 ) {
     val uiState = viewModel.uiState.collectAsStateWithLifecycle()
@@ -133,7 +133,7 @@ fun DetailedStoreScreenContent(
     scrollState: ScrollState,
     scrollBehavior: TopAppBarScrollBehavior,
     onIntent: (DetailedStoreIntent) -> Unit,
-    onProductClick: (String) -> Unit,
+    onProductClick: (String, String) -> Unit,
     onFavoriteButton: () -> Unit,
     onBackButton: () -> Unit
 ) {
@@ -337,6 +337,7 @@ fun DetailedStoreScreenContent(
                                     if (product != null) {
                                         DetailedStoreItem(
                                             product = product,
+                                            uiState.store.userId,
                                             onClick = onProductClick
                                         )
                                     }

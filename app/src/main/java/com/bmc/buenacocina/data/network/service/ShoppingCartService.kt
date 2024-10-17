@@ -29,6 +29,7 @@ class ShoppingCartService @Inject constructor(
             "userId" to dto.userId,
             "store" to hashMapOf(
                 "id" to dto.storeId,
+                "ownerId" to dto.storeOwnerId,
                 "name" to dto.storeName
             ),
             "paginationKey" to UUID.randomUUID().toString(),
@@ -55,6 +56,7 @@ class ShoppingCartService @Inject constructor(
             "userId" to dto.userId,
             "store" to hashMapOf(
                 "id" to dto.storeId,
+                "ownerId" to dto.storeOwnerId,
                 "name" to dto.storeName
             ),
             "updatedAt" to FieldValue.serverTimestamp()

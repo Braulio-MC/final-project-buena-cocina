@@ -64,8 +64,6 @@ import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.bmc.buenacocina.R
 import com.bmc.buenacocina.core.NetworkStatus
-import com.bmc.buenacocina.domain.error.DataError
-import com.bmc.buenacocina.domain.mapper.asUiText
 import com.bmc.buenacocina.ui.viewmodel.DetailedProductViewModel
 import java.math.RoundingMode
 
@@ -74,9 +72,10 @@ import java.math.RoundingMode
 fun DetailedProductScreen(
     windowSizeClass: WindowSizeClass,
     productId: String,
+    storeOwnerId: String,
     viewModel: DetailedProductViewModel = hiltViewModel(
         creationCallback = { factory: DetailedProductViewModel.DetailedProductViewModelFactory ->
-            factory.create(productId)
+            factory.create(productId, storeOwnerId)
         }
     ),
     topAppBarState: TopAppBarState = rememberTopAppBarState(),

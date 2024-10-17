@@ -43,8 +43,7 @@ object GetStreamModule {
     @Singleton
     fun provideNotificationConfig(): NotificationConfig {
         return NotificationConfig(
-            pushDeviceGenerators = listOf(FirebasePushDeviceGenerator(providerName = "Firebase")),
-            autoTranslationEnabled = true
+            pushDeviceGenerators = listOf(FirebasePushDeviceGenerator(providerName = "FCM"))
         )
     }
 

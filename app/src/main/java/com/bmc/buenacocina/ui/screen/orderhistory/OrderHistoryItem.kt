@@ -6,7 +6,6 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.IntrinsicSize
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -15,10 +14,6 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.lazy.grid.GridCells
-import androidx.compose.foundation.lazy.grid.LazyHorizontalGrid
-import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
-import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
@@ -30,7 +25,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontStyle
@@ -40,16 +34,12 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import coil.compose.AsyncImage
-import coil.request.ImageRequest
 import com.bmc.buenacocina.R
 import com.bmc.buenacocina.core.DateUtils
 import com.bmc.buenacocina.core.OrderStatus
 import com.bmc.buenacocina.core.getOrderStatusColor
 import com.bmc.buenacocina.domain.model.OrderDomain
 import com.bmc.buenacocina.ui.theme.BuenaCocinaTheme
-import java.math.BigDecimal
-import java.math.BigInteger
 import java.time.LocalDateTime
 
 @Composable
@@ -57,6 +47,12 @@ fun OrderHistoryItem(
     order: OrderDomain,
     onClick: (String) -> Unit
 ) {
+    var orderTitle = "Informacion"
+    orderTitle += if (!order.rated) {
+        " (se puede calificar)"
+    } else {
+        " (calificada)"
+    }
     val createdAt = order.createdAt?.let {
         DateUtils.localDateTimeToString(it)
     } ?: "No se pudo obtener"
@@ -69,6 +65,7 @@ fun OrderHistoryItem(
         modifier = Modifier
             .fillMaxWidth()
             .height(IntrinsicSize.Max)
+            .padding(5.dp)
     ) {
         Row(
             modifier = Modifier
@@ -99,7 +96,7 @@ fun OrderHistoryItem(
                     .weight(2f)
             ) {
                 Text(
-                    text = "Informacion",
+                    text = orderTitle,
                     textAlign = TextAlign.Start,
                     color = Color.Black,
                     fontSize = 15.sp,
@@ -266,6 +263,7 @@ fun OrderHistoryItemPreview() {
             order = OrderDomain(
                 id = "1",
                 status = OrderStatus.CREATED.status,
+                rated = false,
                 user = OrderDomain.OrderUserDomain(
                     id = "1",
                     name = "Braulio Martinez"
@@ -276,6 +274,7 @@ fun OrderHistoryItemPreview() {
                 ),
                 store = OrderDomain.OrderStoreDomain(
                     id = "1",
+                    ownerId = "1",
                     name = "Tienda de prueba"
                 ),
                 paymentMethod = OrderDomain.OrderPaymentMethodDomain(

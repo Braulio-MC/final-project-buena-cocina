@@ -6,6 +6,9 @@
 
     <!-- Get Stream -->
 
+    <!-- Api server -->
+    <string name="base_api_server_url">http://10.0.2.2:5001</string>
+
     <!-- Navigation -->
     <string name="navigation_home">Inicio</string>
     <string name="navigation_shopping_cart">Carrito</string>
@@ -38,6 +41,17 @@
     <string name="ui_text_form_error_shopping_cart_payment_method_not_selected">Selecciona un metodo de pago</string>
     <string name="ui_text_form_error_shopping_cart_error_not_valid">El carrito no es valido</string>
     <string name="ui_text_form_error_shopping_cart_items_are_empty">No hay productos en el carrito</string>
+    <string name="ui_text_form_error_order_not_valid">El pedido no es valido</string>
+    <string name="ui_text_form_error_product_review_not_valid">El comentario no es valido</string>
+    <string name="ui_text_form_error_product_review_is_blank">Comentario vacio no valido</string>
+    <string name="ui_text_form_error_product_review_is_too_short">El comentario no puede tener menos de %1$d caracteres</string>
+    <string name="ui_text_form_error_product_review_is_too_long">El comentario no puede tener mas de %1$d caracteres</string>
+    <string name="ui_text_form_error_product_review_rating_is_invalid">Calificacion invalida</string>
+    <string name="ui_text_form_error_store_review_not_valid">El comentario no es valido</string>
+    <string name="ui_text_form_error_store_review_is_blank">El comentario no puede estar vacio</string>
+    <string name="ui_text_form_error_store_review_is_too_short">El comentario no puede tener menos de %1$d caracteres</string>
+    <string name="ui_text_form_error_store_review_is_too_long">El comentario no puede tener mas de %1$d caracteres</string>
+    <string name="ui_text_form_error_store_review_rating_is_invalid">Calificacion invalida</string>
 
     <!-- Common -->
     <string name="common_no_internet_error">No hay conexion a internet\n\nComprueba tu fuente de internet y vuelve a intentarlo</string>

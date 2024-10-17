@@ -11,6 +11,7 @@ object ShoppingCartMapper {
             userId = network.userId,
             store = ShoppingCartDomain.ShoppingCartStoreDomain(
                 id = network.store.id,
+                ownerId = network.store.ownerId,
                 name = network.store.name
             ),
             createdAt = DateUtils.firebaseTimestampToLocalDateTime(network.createdAt),

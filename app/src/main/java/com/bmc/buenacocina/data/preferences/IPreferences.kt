@@ -1,8 +1,13 @@
 package com.bmc.buenacocina.data.preferences
 
+import com.bmc.buenacocina.data.network.model.GetStreamUserCredentials
+
 interface IPreferences {
-    suspend fun set(key: String, value: String)
-    suspend fun get(key: String): String?
-    suspend fun remove(key: String)
-    suspend fun clear()
+    fun set(key: String, value: String)
+    fun saveUserCredentials(credentials: GetStreamUserCredentials)
+    fun get(key: String): String?
+    fun getUserCredentials(): GetStreamUserCredentials?
+    fun remove(key: String)
+    fun clearUserCredentials()
+    fun clear()
 }

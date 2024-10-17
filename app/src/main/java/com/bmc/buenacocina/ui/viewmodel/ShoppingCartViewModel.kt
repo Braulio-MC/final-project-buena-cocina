@@ -4,15 +4,8 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.paging.PagingData
 import androidx.paging.cachedIn
-import com.auth0.android.result.UserProfile
-import com.bmc.buenacocina.core.DateUtils
 import com.bmc.buenacocina.core.NetworkStatus
-import com.bmc.buenacocina.core.OrderStatus
 import com.bmc.buenacocina.core.SHARING_COROUTINE_TIMEOUT_IN_SEC
-import com.bmc.buenacocina.data.network.dto.CreateMessageDto
-import com.bmc.buenacocina.data.network.dto.CreateOrderDto
-import com.bmc.buenacocina.data.network.dto.CreateOrderLineDto
-import com.bmc.buenacocina.data.network.dto.UpdateShoppingCartItemDto
 import com.bmc.buenacocina.domain.Result
 import com.bmc.buenacocina.domain.mapper.asFormErrorUiText
 import com.bmc.buenacocina.domain.model.LocationDomain
@@ -20,12 +13,13 @@ import com.bmc.buenacocina.domain.model.ShoppingCartDomain
 import com.bmc.buenacocina.domain.model.ShoppingCartItemDomain
 import com.bmc.buenacocina.domain.repository.ConnectivityRepository
 import com.bmc.buenacocina.domain.repository.LocationRepository
-import com.bmc.buenacocina.domain.repository.MessagingRepository
-import com.bmc.buenacocina.domain.repository.OrderRepository
 import com.bmc.buenacocina.domain.repository.PaymentMethodRepository
 import com.bmc.buenacocina.domain.repository.ShoppingCartItemRepository
 import com.bmc.buenacocina.domain.repository.ShoppingCartRepository
 import com.bmc.buenacocina.domain.repository.UserRepository
+import com.bmc.buenacocina.domain.usecase.CreateOrder
+import com.bmc.buenacocina.domain.usecase.SendNewOrderNotificationToSpecificUserDevices
+import com.bmc.buenacocina.domain.usecase.UpdateShoppingCartItemCount
 import com.bmc.buenacocina.domain.usecase.ValidateShoppingCart
 import com.bmc.buenacocina.domain.usecase.ValidateShoppingCartItems
 import com.bmc.buenacocina.domain.usecase.ValidateShoppingCartLocation
@@ -52,36 +46,10 @@ import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.sync.Mutex
-import kotlinx.coroutines.sync.withLock
 import java.math.BigDecimal
 import java.math.BigInteger
 import java.math.RoundingMode
 import javax.inject.Inject
-
-//messagingService.createTopic(
-//orderId,
-//dto.user.id,
-//dto.store.id,
-//onSuccess = {
-//    val dtoMessage = CreateMessageDto(
-//        notification = CreateMessageDto.CreateMessageNotificationDto(
-//            title = "Nueva orden",
-//            body = "Una nueva orden ha sido creada por ${dto.user.name}"
-//        ),
-//        data = hashMapOf(
-//            "location" to dto.deliveryLocation.name
-//        )
-//    )
-//    messagingService.sendMessageToTopic(
-//        orderId,
-//        dtoMessage,
-//        onSuccess,
-//        onFailure
-//    )
-//},
-//onFailure
-//)
 
 @HiltViewModel
 class ShoppingCartViewModel @Inject constructor(
@@ -89,16 +57,16 @@ class ShoppingCartViewModel @Inject constructor(
     private val validateItems: ValidateShoppingCartItems,
     private val validateLocation: ValidateShoppingCartLocation,
     private val validatePaymentMethod: ValidateShoppingCartPaymentMethod,
+    private val createOrder: CreateOrder,
+    private val sendNewOrderNotificationToSpecificUserDevices: SendNewOrderNotificationToSpecificUserDevices,
+    private val updateShoppingCartItemCount: UpdateShoppingCartItemCount,
     private val shoppingCartRepository: ShoppingCartRepository,
     private val shoppingCartItemRepository: ShoppingCartItemRepository,
-    private val orderRepository: OrderRepository,
-    private val messagingRepository: MessagingRepository,
     private val userRepository: UserRepository,
     private val locationRepository: LocationRepository,
     paymentMethodRepository: PaymentMethodRepository,
     connectivityRepository: ConnectivityRepository
 ) : ViewModel() {
-    private val mutex = Mutex()
     private val _uiState = MutableStateFlow(ShoppingCartUiState())
     val uiState: StateFlow<ShoppingCartUiState> = _uiState.asStateFlow()
     private val _events = Channel<ShoppingCartViewModelEvent>()
@@ -107,7 +75,7 @@ class ShoppingCartViewModel @Inject constructor(
         .stateIn(
             scope = viewModelScope,
             started = SharingStarted.WhileSubscribed(SHARING_COROUTINE_TIMEOUT_IN_SEC),
-            initialValue = NetworkStatus.Unavailable
+            initialValue = NetworkStatus.Unknown
         )
     private val _qPaymentMethods: (Query) -> Query = { query ->
         query.whereNotEqualTo("name", "")
@@ -158,15 +126,11 @@ class ShoppingCartViewModel @Inject constructor(
             }
 
             is ShoppingCartIntent.DecreaseShoppingCartItemQuantity -> {
-                viewModelScope.launch {
-                    updateProductCount(intent.itemId, intent.count)
-                }
+                updateItemCount(intent.itemId, intent.count)
             }
 
             is ShoppingCartIntent.IncreaseShoppingCartItemQuantity -> {
-                viewModelScope.launch {
-                    updateProductCount(intent.itemId, intent.count)
-                }
+                updateItemCount(intent.itemId, intent.count)
             }
         }
     }
@@ -201,40 +165,16 @@ class ShoppingCartViewModel @Inject constructor(
         }
     }
 
-    private suspend fun updateProductCount(itemId: String, count: BigInteger) = mutex.withLock {
+    private fun updateItemCount(itemId: String, count: BigInteger) {
         shoppingCartState.value.shoppingCart?.let { shoppingCart ->
-            val item = shoppingCartItemRepository.get(shoppingCart.id, itemId).firstOrNull()
-            if (item != null) {
-                val finalCount = item.quantity + count
-                if (finalCount == BigInteger.ZERO) {
-                    shoppingCartItemRepository.delete(
-                        shoppingCart.id,
-                        itemId,
-                        onSuccess = {
-                            if (shoppingCartState.value.shoppingCartItems.isEmpty()) {
-                                shoppingCartRepository.delete(
-                                    shoppingCart.id,
-                                    onSuccess = {
-                                        _uiState.value = ShoppingCartUiState()
-                                    },
-                                    onFailure = { e -> }
-                                )
-                            }
-                        },
-                        onFailure = { e -> }
-                    )
-                } else {
-                    val dto = UpdateShoppingCartItemDto(
-                        quantity = finalCount.toInt()
-                    )
-                    shoppingCartItemRepository.update(
-                        shoppingCart.id,
-                        itemId,
-                        dto,
-                        onSuccess = { },
-                        onFailure = { e -> }
-                    )
-                }
+            viewModelScope.launch {
+                updateShoppingCartItemCount(
+                    shoppingCart.id,
+                    itemId,
+                    count,
+                    onSuccess = { },
+                    onFailure = { e -> }
+                )
             }
         }
     }
@@ -303,37 +243,39 @@ class ShoppingCartViewModel @Inject constructor(
                 is Result.Success -> {
                     if (result.data.getId() != null && result.data.name != null) {
                         try {
-                            val dto = makeCreateOrderDto(result.data)
-                            val lines = makeCreateOrderLineDtoList()
+                            val userId = result.data.getId()!!
+                            val userName = result.data.name!!
+                            val deliveryLocationId = _uiState.value.currentDeliveryLocation!!.id
+                            val deliveryLocationName = _uiState.value.currentDeliveryLocation!!.name
                             val storeId = shoppingCartState.value.shoppingCart!!.store.id
-                            val messageDto = makeCreateMessageDto(result.data.name!!)
-                            orderRepository.create(
-                                dto,
-                                lines,
-                                onSuccess = { orderId ->
-                                    shoppingCartRepository.delete(
-                                        shoppingCartState.value.shoppingCart!!.id,
+                            val storeOwnerId = shoppingCartState.value.shoppingCart!!.store.ownerId
+                            val storeName = shoppingCartState.value.shoppingCart!!.store.name
+                            val paymentMethodId = _uiState.value.currentPaymentMethod!!.id
+                            val paymentMethodName = _uiState.value.currentPaymentMethod!!.name
+                            val cartId = shoppingCartState.value.shoppingCart!!.id
+                            val cartItems = shoppingCartState.value.shoppingCartItems
+                            val itemCount = shoppingCartState.value.shoppingCartItems.size
+                            createOrder(
+                                userId = userId,
+                                userName = userName,
+                                deliveryLocationId = deliveryLocationId,
+                                deliveryLocationName = deliveryLocationName,
+                                storeId = storeId,
+                                storeOwnerId = storeOwnerId,
+                                storeName = storeName,
+                                paymentMethodId = paymentMethodId,
+                                paymentMethodName = paymentMethodName,
+                                shoppingCartId = cartId,
+                                items = cartItems,
+                                onSuccess = {
+                                    sendNewOrderNotificationToSpecificUserDevices(
+                                        storeId = storeId,
+                                        storeName = storeName,
+                                        userName = userName,
+                                        locationName = deliveryLocationName,
+                                        itemCount = itemCount,
                                         onSuccess = {
-                                            messagingRepository.createTopic(
-                                                orderId,
-                                                result.data.getId()!!,
-                                                storeId,
-                                                onSuccess = {
-                                                    messagingRepository.sendMessageToTopic(
-                                                        orderId,
-                                                        messageDto,
-                                                        onSuccess = {
-                                                            processOrderSuccess()
-                                                        },
-                                                        onFailure = { e ->
-                                                            processOrderFailed(e)
-                                                        }
-                                                    )
-                                                },
-                                                onFailure = { e ->
-                                                    processOrderFailed(e)
-                                                }
-                                            )
+                                            processOrderSuccess()
                                         },
                                         onFailure = { e ->
                                             processOrderFailed(e)
@@ -348,74 +290,19 @@ class ShoppingCartViewModel @Inject constructor(
                             processOrderFailed(e)
                         }
                     } else {
-                        processOrderFailed(Exception("Failed to get user profile")) // Custom exception here
+                        processOrderFailed(Exception("Failed to get user id or username")) // Custom exception here
                     }
                 }
             }
         }
     }
 
-    private fun makeCreateOrderDto(userProfile: UserProfile): CreateOrderDto {
-        return CreateOrderDto(
-            status = OrderStatus.CREATED.status,
-            user = CreateOrderDto.CreateOrderUserDto(
-                id = userProfile.getId()!!,
-                name = userProfile.name!!
-            ),
-            deliveryLocation = CreateOrderDto.CreateOrderDeliveryLocationDto(
-                id = _uiState.value.currentDeliveryLocation!!.id,
-                name = _uiState.value.currentDeliveryLocation!!.name
-            ),
-            store = CreateOrderDto.CreateOrderStoreDto(
-                id = shoppingCartState.value.shoppingCart!!.store.id,
-                name = shoppingCartState.value.shoppingCart!!.store.name
-            ),
-            paymentMethod = CreateOrderDto.CreateOrderPaymentMethodDto(
-                id = _uiState.value.currentPaymentMethod!!.id,
-                name = _uiState.value.currentPaymentMethod!!.name
-            )
-        )
-    }
-
-    private fun makeCreateOrderLineDtoList(): List<CreateOrderLineDto> {
-        return shoppingCartState.value.shoppingCartItems.map { item ->
-            if (item.product.discount.startDate == null || item.product.discount.endDate == null) {
-                throw Exception("Failed to create order lines") // Custom exception here
-            }
-            CreateOrderLineDto(
-                quantity = item.quantity.toInt(),
-                product = CreateOrderLineDto.CreateOrderLineProductDto(
-                    id = item.product.id,
-                    name = item.product.name,
-                    description = item.product.description,
-                    image = item.product.image,
-                    price = item.product.price.toDouble(),
-                    discount = CreateOrderLineDto.CreateOrderLineProductDto.CreateOrderLineProductDiscountDto(
-                        id = item.product.discount.id,
-                        percentage = item.product.discount.percentage.toDouble(),
-                        startDate = DateUtils.localDateTimeToFirebaseTimestamp(item.product.discount.startDate),
-                        endDate = DateUtils.localDateTimeToFirebaseTimestamp(item.product.discount.endDate)
-                    )
-                )
-            )
-        }
-    }
-
-    private fun makeCreateMessageDto(userName: String): CreateMessageDto {
-        return CreateMessageDto(
-            notification = CreateMessageDto.CreateMessageNotificationDto(
-                title = "Nueva orden",
-                body = "Una nueva orden ha sido creada por $userName"
-            ),
-            data = hashMapOf(
-                "location" to _uiState.value.currentDeliveryLocation!!.name,
-            )
-        )
-    }
-
     private fun processOrderSuccess() {
         viewModelScope.launch {
             _uiState.value = ShoppingCartUiState()
+            _uiState.update { currentState ->
+                currentState.copy(isWaitingForResult = false)
+            }
             _events.send(ShoppingCartViewModelEvent.OrderSuccess)
         }
     }

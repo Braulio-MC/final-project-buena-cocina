@@ -3,6 +3,7 @@ package com.bmc.buenacocina.ui
 import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
+import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 //import androidx.activity.viewModels
@@ -12,21 +13,27 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.windowsizeclass.ExperimentalMaterial3WindowSizeClassApi
 import androidx.compose.material3.windowsizeclass.calculateWindowSizeClass
 import androidx.compose.ui.Modifier
+import androidx.core.splashscreen.SplashScreen
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
-import com.bmc.buenacocina.di.AppDispatcher
-import com.bmc.buenacocina.di.AppDispatchers
+import androidx.lifecycle.lifecycleScope
+import com.bmc.buenacocina.R
+import com.bmc.buenacocina.data.network.model.GetStreamUserCredentials
+import com.bmc.buenacocina.data.preferences.PreferencesService
+import com.bmc.buenacocina.domain.Result
+import com.bmc.buenacocina.domain.mapper.asUiText
+import com.bmc.buenacocina.domain.repository.ChatRepository
+import com.bmc.buenacocina.domain.repository.GetStreamTokenRepository
 import com.bmc.buenacocina.domain.repository.TokenRepository
+import com.bmc.buenacocina.domain.repository.UserRepository
 import com.bmc.buenacocina.ui.navigation.graph.NavigationGraph
 import com.bmc.buenacocina.ui.theme.BuenaCocinaTheme
 import com.google.firebase.FirebaseApp
 import com.google.firebase.messaging.FirebaseMessaging
 import dagger.hilt.android.AndroidEntryPoint
 import io.getstream.chat.android.client.ChatClient
-//import io.getstream.chat.android.compose.viewmodel.channels.ChannelListViewModel
 import io.getstream.chat.android.compose.viewmodel.channels.ChannelViewModelFactory
+import io.getstream.chat.android.models.User
 import io.getstream.chat.android.models.querysort.QuerySortByField
-import kotlinx.coroutines.CoroutineDispatcher
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -39,11 +46,19 @@ class MainActivity : ComponentActivity() {
     lateinit var tokenRepository: TokenRepository
 
     @Inject
-    @AppDispatcher(AppDispatchers.IO)
-    lateinit var ioDispatcher: CoroutineDispatcher
+    lateinit var chatClient: ChatClient
 
     @Inject
-    lateinit var chatClient: ChatClient
+    lateinit var preferencesService: PreferencesService
+
+    @Inject
+    lateinit var userRepository: UserRepository
+
+    @Inject
+    lateinit var getStreamTokenRepository: GetStreamTokenRepository
+
+    @Inject
+    lateinit var getStreamChatRepository: ChatRepository
 
     private val channelViewModelFactory by lazy {
         ChannelViewModelFactory(
@@ -59,6 +74,7 @@ class MainActivity : ComponentActivity() {
         val splashScreen = installSplashScreen()
         super.onCreate(savedInstanceState)
         requestNotificationPermission()
+        connectUserToGetStream(splashScreen)
         FirebaseApp.initializeApp(this)
         setContent {
             BuenaCocinaTheme {
@@ -71,37 +87,8 @@ class MainActivity : ComponentActivity() {
                     NavigationGraph(
                         windowSizeClass = windowSizeClass,
                         channelViewModelFactory = channelViewModelFactory,
-                        onUserAuthenticated = { userId ->
-                            splashScreen.setKeepOnScreenCondition { true }
-                            messaging.token.addOnSuccessListener { token ->
-                                tokenRepository.exists(
-                                    userId = userId,
-                                    token = token,
-                                    onSuccess = { exists ->
-                                        if (exists) {
-                                            splashScreen.setKeepOnScreenCondition { false }
-                                        } else {
-                                            processTokenDoesNotExist(
-                                                token = token,
-                                                onSuccess = {
-                                                    splashScreen.setKeepOnScreenCondition { false }
-                                                },
-                                                onFailure = { e ->
-                                                    splashScreen.setKeepOnScreenCondition { false }
-                                                    e.printStackTrace()
-                                                }
-                                            )
-                                        }
-                                    },
-                                    onFailure = { e ->
-                                        splashScreen.setKeepOnScreenCondition { false }
-                                        e.printStackTrace()
-                                    }
-                                )
-                            }.addOnFailureListener { e ->
-                                splashScreen.setKeepOnScreenCondition { false }
-                                e.printStackTrace()
-                            }
+                        onUserAuthenticated = { userProfile ->
+                            processFCMTokenCreation(userProfile?.getId(), splashScreen)
                         }
                     )
                 }
@@ -124,12 +111,113 @@ class MainActivity : ComponentActivity() {
         }
     }
 
-    private fun processTokenDoesNotExist(
+    private fun connectUserToGetStream(ss: SplashScreen) {
+        val credentials = preferencesService.getUserCredentials()
+        if (credentials != null) {
+            lifecycleScope.launch {
+                getStreamChatRepository.connectUser(
+                    credentials,
+                    onSuccess = {
+                        ss.setKeepOnScreenCondition { false }
+                    },
+                    onFailure = { e ->
+                        Log.e("MainActivity", "Error: ${e.message}")
+                        ss.setKeepOnScreenCondition { false }
+                    }
+                )
+            }
+        } else {
+            lifecycleScope.launch {
+                when (val resultUser = userRepository.getUserProfile()) {
+                    is Result.Error -> {
+
+                    }
+
+                    is Result.Success -> {
+                        val userId = resultUser.data.getId()
+                        val userName = resultUser.data.name ?: resultUser.data.nickname
+                        val image = resultUser.data.pictureURL
+
+                        if (userId != null && userName != null && image != null) {
+                            val id = userId.replace("|", "-")
+                            when (val resultToken = getStreamTokenRepository.request(id)) {
+                                is Result.Error -> {
+                                    ss.setKeepOnScreenCondition { false }
+                                    Log.e(
+                                        "MainActivity",
+                                        "Error: ${
+                                            resultToken.error.asUiText().asString(this@MainActivity)
+                                        }"
+                                    )
+                                }
+
+                                is Result.Success -> {
+                                    val getStreamCredentials = GetStreamUserCredentials(
+                                        apiKey = this@MainActivity.getString(R.string.get_stream_api_key),
+                                        user = User(
+                                            id = id,
+                                            name = userName,
+                                            image = image
+
+                                        ),
+                                        token = resultToken.data
+                                    )
+                                    preferencesService.saveUserCredentials(getStreamCredentials)
+                                    getStreamChatRepository.connectUser(
+                                        getStreamCredentials,
+                                        onSuccess = { },
+                                        onFailure = { e ->
+                                            Log.e("LoginViewModel", "Error: ${e.message}")
+                                        }
+                                    )
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    private fun processFCMTokenCreation(userId: String?, ss: SplashScreen) {
+        ss.setKeepOnScreenCondition { true }
+        messaging.token.addOnSuccessListener { token ->
+            tokenRepository.exists(
+                userId = userId,
+                token = token,
+                onSuccess = { exists ->
+                    if (exists) {
+                        ss.setKeepOnScreenCondition { false }
+                    } else {
+                        processFCMTokenDoesNotExist(
+                            token = token,
+                            onSuccess = {
+                                ss.setKeepOnScreenCondition { false }
+                            },
+                            onFailure = { e ->
+                                ss.setKeepOnScreenCondition { false }
+                                e.printStackTrace()
+                            }
+                        )
+                    }
+                },
+                onFailure = { e ->
+                    ss.setKeepOnScreenCondition { false }
+                    e.printStackTrace()
+                }
+            )
+        }.addOnFailureListener { e ->
+            ss.setKeepOnScreenCondition { false }
+            e.printStackTrace()
+        }
+    }
+
+    private fun processFCMTokenDoesNotExist(
         token: String,
         onSuccess: (Any?) -> Unit,
         onFailure: (Exception) -> Unit
     ) {
-        CoroutineScope(ioDispatcher).launch {
+        lifecycleScope.launch {
             tokenRepository.create(
                 token = token,
                 onSuccess = {

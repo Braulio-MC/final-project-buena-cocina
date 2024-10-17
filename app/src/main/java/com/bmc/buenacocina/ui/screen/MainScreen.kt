@@ -83,45 +83,28 @@ fun MainScreenContent(
     NavigationSuiteScaffold(
         navigationSuiteItems = {
             NavDestination.entries.forEach { destination ->
-//                val selected =
-//                    currentDestination?.hierarchy?.any { it.route == destination.route } == true
                 item(
                     selected = currentRoute == destination.route,
                     onClick = {
                         if (currentRoute != destination.route) {
                             navController.navigate(destination.route) {
-                                popUpTo(destination.route) {
-
-                                }
+                                popUpTo(NavDestination.HOME.route)
                                 launchSingleTop = true
                             }
                         }
                     },
                     icon = {
-                        BadgedBox(
-                            badge = {
-                                Badge{
-                                    Text(
-                                        text = "5",
-                                        fontSize = 15.sp,
-                                        fontWeight = FontWeight.W400,
-                                        color = Color.White
-                                    )
-                                }
-                            }
-                        ) {
-                            Icon(
-                                imageVector = if (currentRoute == destination.route) {
-                                    destination.selectedIcon
-                                } else {
-                                    destination.unselectedIcon
-                                },
-                                contentDescription = stringResource(id = destination.contentDescription),
-                                tint = Color.Black,
-                                modifier = Modifier
-                                    .size(30.dp)
-                            )
-                        }
+                        Icon(
+                            imageVector = if (currentRoute == destination.route) {
+                                destination.selectedIcon
+                            } else {
+                                destination.unselectedIcon
+                            },
+                            contentDescription = stringResource(id = destination.contentDescription),
+                            tint = Color.Black,
+                            modifier = Modifier
+                                .size(30.dp)
+                        )
                     },
                     label = {
                         Text(
@@ -146,8 +129,11 @@ fun MainScreenContent(
             onDetailedProductBackButton = popBackStack,
             onOrderHistoryBackButton = popBackStack,
             onDetailedOrderBackButton = popBackStack,
+            onDetailedOrderOrderRatingUpdatedSuccessful = popBackStack,
+            onDetailedOrderRatingBackButton = popBackStack,
             onShoppingCartBackButton = popBackStack,
             onChatBackButton = popBackStack,
+            onDetailedChatBackButton = popBackStack,
             onLogoutButton = onLogoutButton
         )
     }

@@ -15,7 +15,7 @@ fun ChatScreen(
     ChatTheme {
         ChannelsScreen(
             viewModelFactory = viewModel,
-            title = "Chats",
+            title = "Mensajes",
             isShowingHeader = true,
             isShowingSearch = true,
             onItemClick = onItemClick,

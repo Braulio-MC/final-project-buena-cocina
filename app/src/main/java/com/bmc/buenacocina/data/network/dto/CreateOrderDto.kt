@@ -2,6 +2,7 @@ package com.bmc.buenacocina.data.network.dto
 
 data class CreateOrderDto (
     val status: String,
+    val rated: Boolean,
     val user: CreateOrderUserDto,
     val deliveryLocation: CreateOrderDeliveryLocationDto,
     val store: CreateOrderStoreDto,
@@ -19,6 +20,7 @@ data class CreateOrderDto (
 
     data class CreateOrderStoreDto(
         val id: String,
+        val ownerId: String,
         val name: String
     )
 

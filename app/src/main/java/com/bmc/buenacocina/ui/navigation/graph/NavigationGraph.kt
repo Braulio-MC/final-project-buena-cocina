@@ -9,6 +9,7 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import com.auth0.android.result.UserProfile
 import com.bmc.buenacocina.ui.navigation.Graph
 import com.bmc.buenacocina.ui.navigation.NavigationState
 import com.bmc.buenacocina.ui.screen.MainScreen
@@ -22,7 +23,7 @@ fun NavigationGraph(
     channelViewModelFactory: ChannelViewModelFactory,
     navController: NavHostController = rememberNavController(),
     viewModel: NavigationViewModel = hiltViewModel(),
-    onUserAuthenticated: (String?) -> Unit
+    onUserAuthenticated: (UserProfile?) -> Unit
 ) {
     val result by produceState<NavigationState>(initialValue = NavigationState.Loading) {
         value = viewModel.checkNavigationState()
@@ -45,9 +46,9 @@ fun NavigationGraph(
     ) {
         authGraph(
             windowSizeClass = windowSizeClass,
-            onLoginButton = { isSuccessful, userId ->
+            onLoginButton = { isSuccessful, userProfile ->
                 if (isSuccessful) {
-                    onUserAuthenticated(userId)
+                    onUserAuthenticated(userProfile)
                     navController.navigate(Graph.Main.MainGraph.route) {
                         popUpTo(Graph.Auth.AuthGraph.route) {
                             inclusive = true

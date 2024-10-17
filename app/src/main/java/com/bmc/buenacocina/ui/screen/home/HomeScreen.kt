@@ -11,10 +11,8 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
@@ -106,7 +104,10 @@ fun HomeScreenContent(
             .fillMaxSize()
             .verticalScroll(scrollState)
     ) {
-        ConstraintLayout {
+        ConstraintLayout(
+            modifier = Modifier
+                .fillMaxWidth()
+        ) {
             val (userImg, searchBar) = createRefs()
 
             Box(
@@ -214,7 +215,7 @@ fun HomeScreenContent(
             fontWeight = FontWeight.Bold,
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(start = 20.dp, end = 20.dp)
+                .padding(start = 20.dp, end = 20.dp, top = 20.dp)
         )
         Row(
             modifier = Modifier
@@ -237,7 +238,7 @@ fun HomeScreenContent(
                 )
                 Text(
                     text = "Restaurante",
-                    fontSize = 17.sp,
+                    fontSize = 18.sp,
                     textAlign = TextAlign.Center,
                     fontWeight = FontWeight.Medium,
                     modifier = Modifier
@@ -253,14 +254,14 @@ fun HomeScreenContent(
                 .fillMaxWidth()
                 .padding(start = 20.dp, end = 20.dp)
         )
-        LazyColumn(
-            modifier = Modifier
-                .heightIn(max = 1000.dp)
-            // .nestedScroll()  // Nested scroll for best-rated products
-        ) {
-            items(10) { index ->
-
-            }
-        }
+//        LazyColumn(
+//            modifier = Modifier
+//                .heightIn(max = 1000.dp)
+//            // .nestedScroll()  // Nested scroll for best-rated products
+//        ) {
+//            items(10) { index ->
+//
+//            }
+//        }
     }
 }

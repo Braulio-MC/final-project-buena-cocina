@@ -48,8 +48,8 @@ fun getOrderStatusColor(status: String): Int {
         OrderStatus.PROGRESS.status -> R.color.order_status_progress
         OrderStatus.ON_WAY.status -> R.color.order_status_way
         OrderStatus.DELIVERED.status -> R.color.order_status_arrived
-        OrderStatus.CANCELLED.status -> R.color.order_status_cancelled
-        else -> R.color.order_status_error
+        OrderStatus.ERROR.status -> R.color.order_status_error
+        else -> R.color.order_status_unassigned
     }
 }
 

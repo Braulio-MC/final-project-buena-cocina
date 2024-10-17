@@ -30,6 +30,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.auth0.android.result.UserProfile
 import com.bmc.buenacocina.R
 import com.bmc.buenacocina.core.NetworkStatus
 import com.bmc.buenacocina.ui.viewmodel.LoginViewModel
@@ -38,7 +39,7 @@ import com.bmc.buenacocina.ui.viewmodel.LoginViewModel
 fun LoginScreen(
     windowSizeClass: WindowSizeClass,
     viewModel: LoginViewModel = hiltViewModel(),
-    onLoginButton: (Boolean, String?) -> Unit
+    onLoginButton: (Boolean, UserProfile?) -> Unit
 ) {
     val netState = viewModel.netState.collectAsStateWithLifecycle()
 
@@ -62,10 +63,10 @@ fun LoginScreen(
 fun LoginScreenContent(
     windowSizeClass: WindowSizeClass,
     netState: NetworkStatus,
-    onLoginButton: (Boolean, String?) -> Unit,
+    onLoginButton: (Boolean, UserProfile?) -> Unit,
     isLoginButtonEnabled: Boolean,
     onLoginButtonChanged: (Boolean) -> Unit,
-    onStartLogin: (Context, () -> Unit, (String?) -> Unit) -> Unit
+    onStartLogin: (Context, () -> Unit, (UserProfile) -> Unit) -> Unit
 ) {
     val currentContext = LocalContext.current
 
@@ -117,8 +118,8 @@ fun LoginScreenContent(
                         onStartLogin(currentContext, {
                             onLoginButtonChanged(true)
                             onLoginButton(false, null)
-                        }, { userId ->
-                            onLoginButton(true, userId)
+                        }, { userProfile ->
+                            onLoginButton(true, userProfile)
                         })
                     },
                     enabled = isLoginButtonEnabled,

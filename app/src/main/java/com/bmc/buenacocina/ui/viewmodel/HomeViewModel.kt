@@ -9,8 +9,11 @@ import com.auth0.android.authentication.storage.SecureCredentialsManager
 import com.auth0.android.callback.Callback
 import com.auth0.android.provider.WebAuthProvider
 import com.bmc.buenacocina.R
+import com.bmc.buenacocina.data.preferences.PreferencesService
 import com.bmc.buenacocina.domain.repository.UserRepository
 import com.bmc.buenacocina.domain.Result
+import com.bmc.buenacocina.domain.repository.ChatRepository
+import com.bmc.buenacocina.domain.repository.TokenRepository
 import com.bmc.buenacocina.ui.screen.home.HomeUiState
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -24,6 +27,9 @@ class HomeViewModel @Inject constructor(
     private val auth0Account: Auth0,
     private val auth0Manager: SecureCredentialsManager,
     private val userRepository: UserRepository,
+    private val preferencesService: PreferencesService,
+    private val chatRepository: ChatRepository,
+    private val tokenRepository: TokenRepository
 ) : ViewModel() {
     private val _uiState = MutableStateFlow(HomeUiState())
     val uiState = _uiState.asStateFlow()
@@ -63,8 +69,16 @@ class HomeViewModel @Inject constructor(
                 }
 
                 override fun onSuccess(result: Void?) {
-                    auth0Manager.clearCredentials()
-                    onSuccess()
+                    viewModelScope.launch {
+                        tokenRepository.remove(
+                            onSuccess = { },
+                            onFailure = { }
+                        )
+                        auth0Manager.clearCredentials()
+                        chatRepository.disconnectUser()
+                        preferencesService.clearUserCredentials()
+                        onSuccess()
+                    }
                 }
             })
     }

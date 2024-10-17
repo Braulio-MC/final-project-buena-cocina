@@ -36,7 +36,7 @@ class OrderHistoryViewModel @Inject constructor(
                 val qOrders: (Query) -> Query = { query ->
                     query.whereEqualTo(FieldPath.of("user", "id"), result.data)
                 }
-                orderRepository.paging(qOrders)
+                orderRepository.paging(qOrders).cachedIn(viewModelScope)
             }
         }
     }.cachedIn(viewModelScope)
