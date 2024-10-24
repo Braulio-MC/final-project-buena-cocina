@@ -51,8 +51,12 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.paging.LoadState
+import androidx.paging.compose.LazyPagingItems
+import androidx.paging.compose.collectAsLazyPagingItems
+import androidx.paging.compose.itemKey
 import com.bmc.buenacocina.R
+import com.bmc.buenacocina.domain.model.StoreDomain
 import com.bmc.buenacocina.ui.viewmodel.RestaurantCategoryViewModel
 
 data class ProductCategory(
@@ -79,11 +83,11 @@ fun StoreScreen(
     onStore: (String) -> Unit,
     onBackButton: () -> Unit
 ) {
-    val uiState = viewModel.uiState.collectAsStateWithLifecycle()
+    val storesExplore = viewModel.storesExplore.collectAsLazyPagingItems()
 
     StoreScreenContent(
         windowSizeClass = windowSizeClass,
-        uiState = uiState.value,
+        storesExplore = storesExplore,
         scrollState = scrollState,
         scrollBehavior = scrollBehavior,
         onIntent = viewModel::onIntent,
@@ -97,7 +101,7 @@ fun StoreScreen(
 @Composable
 fun StoreScreenContent(
     windowSizeClass: WindowSizeClass,
-    uiState: StoreUiState,
+    storesExplore: LazyPagingItems<StoreDomain>,
     scrollState: ScrollState,
     scrollBehavior: TopAppBarScrollBehavior,
     onIntent: (StoreIntent) -> Unit,
@@ -221,42 +225,48 @@ fun StoreScreenContent(
                     .padding(start = 10.dp)
                     .fillMaxWidth()
             )
-//            if (exploreStores.loadState.refresh is LoadState.Loading) {
-//                LazyColumn(
-//                    modifier = Modifier
-//                        .padding(5.dp)
-//                        .heightIn(max = 1000.dp)
-//                ) {
-//                    items(10) {
-//                        StoreItemShimmer()
-//                    }
-//                }
-//            } else {
-            LazyColumn(
-                modifier = Modifier
-                    .padding(5.dp)
-                    .heightIn(max = 1000.dp)
-                    .nestedScroll(connection = object : NestedScrollConnection {
-                        override fun onPreScroll(
-                            available: Offset,
-                            source: NestedScrollSource
-                        ): Offset {
-                            if (scrollState.canScrollForward && available.y < 0) {
-                                val consumed = scrollState.dispatchRawDelta(-available.y)
-                                return Offset(x = 0f, y = -consumed)
+            when (storesExplore.loadState.refresh) {
+                is LoadState.Error -> {
+
+                }
+
+                LoadState.Loading -> {
+
+                }
+
+                is LoadState.NotLoading -> {
+                    LazyColumn(
+                        modifier = Modifier
+                            .padding(5.dp)
+                            .heightIn(max = 1000.dp)
+                            .nestedScroll(connection = object : NestedScrollConnection {
+                                override fun onPreScroll(
+                                    available: Offset,
+                                    source: NestedScrollSource
+                                ): Offset {
+                                    if (scrollState.canScrollForward && available.y < 0) {
+                                        val consumed = scrollState.dispatchRawDelta(-available.y)
+                                        return Offset(x = 0f, y = -consumed)
+                                    }
+                                    return Offset.Zero
+                                }
+                            })
+                    ) {
+                        items(
+                            count = storesExplore.itemCount,
+                            key = storesExplore.itemKey { item -> item.id }
+                        ) { index ->
+                            val store = storesExplore[index]
+                            if (store != null) {
+                                StoreItem(
+                                    store = store,
+                                    onClick = onStore
+                                )
                             }
-                            return Offset.Zero
                         }
-                    })
-            ) {
-                items(uiState.exploreStores) { item ->
-                    StoreItem(
-                        store = item,
-                        onClick = onStore
-                    )
+                    }
                 }
             }
-//            }
         }
     }
 }

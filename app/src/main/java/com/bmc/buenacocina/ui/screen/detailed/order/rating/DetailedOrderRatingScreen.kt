@@ -198,7 +198,9 @@ fun DetailedOrderRatingScreenContent(
                     fontSize = 20.sp,
                     fontWeight = FontWeight.Bold,
                     maxLines = 1,
-                    overflow = TextOverflow.Ellipsis
+                    overflow = TextOverflow.Ellipsis,
+                    modifier = Modifier
+                        .padding(horizontal = 10.dp)
                 )
                 RatingBar(
                     rating = resultState.storeRating.rating,

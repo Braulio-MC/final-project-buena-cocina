@@ -183,9 +183,13 @@ class ShoppingCartViewModel @Inject constructor(
         if (items.isNotEmpty()) {
             val subtotal =
                 items.sumOf { item ->
-                    item.product.price.times(item.quantity.toBigDecimal())
+                    val discount =
+                        (item.product.price * (item.product.discount.percentage / BigDecimal.valueOf(
+                            100
+                        ))) * item.quantity.toBigDecimal()
+                    item.product.price.times(item.quantity.toBigDecimal()).minus(discount)
                 }.setScale(2, RoundingMode.HALF_DOWN)
-            val service = BigDecimal(20.7).setScale(2, RoundingMode.HALF_DOWN)
+            val service = BigDecimal.ZERO
             val total = (subtotal + service).setScale(2, RoundingMode.HALF_DOWN)
             _uiState.update { currentState ->
                 currentState.copy(

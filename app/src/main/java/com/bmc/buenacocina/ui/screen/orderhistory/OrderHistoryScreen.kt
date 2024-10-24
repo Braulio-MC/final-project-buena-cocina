@@ -49,7 +49,7 @@ fun OrderHistoryScreen(
     onOrderItemClick: (String) -> Unit,
     onBackButton: () -> Unit
 ) {
-    val orders = viewModel.orders().collectAsLazyPagingItems()
+    val orders = viewModel.orders.collectAsLazyPagingItems()
 
     OrderHistoryScreenContent(
         windowSizeClass = windowSizeClass,

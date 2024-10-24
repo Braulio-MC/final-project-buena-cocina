@@ -47,11 +47,13 @@ fun OrderHistoryItem(
     order: OrderDomain,
     onClick: (String) -> Unit
 ) {
-    var orderTitle = "Informacion"
-    orderTitle += if (!order.rated) {
-        " (se puede calificar)"
+    var orderTitle = "Informacion: "
+    orderTitle += if (order.status == OrderStatus.DELIVERED.status && !order.rated) {
+        "se puede calificar"
+    } else if (order.status == OrderStatus.DELIVERED.status && order.rated) {
+        "se califico"
     } else {
-        " (calificada)"
+        "pendiente"
     }
     val createdAt = order.createdAt?.let {
         DateUtils.localDateTimeToString(it)

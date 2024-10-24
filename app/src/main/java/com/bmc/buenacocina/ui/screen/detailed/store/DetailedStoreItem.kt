@@ -5,12 +5,12 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Star
@@ -24,18 +24,20 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
+import com.bmc.buenacocina.R
 import com.bmc.buenacocina.core.DateUtils
 import com.bmc.buenacocina.domain.model.ProductDomain
 import java.math.BigDecimal
+import java.math.RoundingMode
 import java.time.LocalDateTime
 
 @Composable
@@ -54,7 +56,7 @@ fun DetailedStoreItem(
                 product.discount.endDate
             )
         ) {
-            discountPercentage = product.discount.percentage
+            discountPercentage = product.discount.percentage.setScale(2, RoundingMode.HALF_DOWN)
         }
     }
 
@@ -116,7 +118,7 @@ fun DetailedStoreItem(
                 Icon(
                     imageVector = Icons.Filled.Star,
                     contentDescription = "",
-                    tint = Color.Yellow
+                    tint = colorResource(id = R.color.rating_bar_filled)
                 )
                 Spacer(modifier = Modifier.width(2.dp))
                 Text(
@@ -132,14 +134,18 @@ fun DetailedStoreItem(
                         elevation = CardDefaults.cardElevation(
                             defaultElevation = 1.dp
                         ),
+                        colors = CardDefaults.cardColors(
+                            containerColor = colorResource(id = R.color.detailed_store_item_discount_color)
+                        ),
                         shape = RoundedCornerShape(5.dp),
                         modifier = Modifier
-                            .padding(end = 10.dp)
-                            .size(50.dp, 25.dp)
+                            .padding(end = 3.dp)
+                            .wrapContentSize()
                     ) {
                         Column(
                             modifier = Modifier
-                                .fillMaxSize(),
+                                .padding(horizontal = 5.dp, vertical = 1.dp)
+                                .wrapContentSize(),
                             horizontalAlignment = Alignment.CenterHorizontally,
                             verticalArrangement = Arrangement.Center
                         ) {
@@ -149,7 +155,6 @@ fun DetailedStoreItem(
                                 fontWeight = FontWeight.SemiBold,
                                 textAlign = TextAlign.Center,
                                 color = Color.Black,
-                                textDecoration = TextDecoration.Underline,
                                 maxLines = 1,
                                 overflow = TextOverflow.Ellipsis
                             )

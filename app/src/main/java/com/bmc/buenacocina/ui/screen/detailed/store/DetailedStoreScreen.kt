@@ -14,7 +14,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
-import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
@@ -25,6 +24,7 @@ import androidx.compose.material.icons.filled.Star
 import androidx.compose.material.icons.outlined.FavoriteBorder
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -38,11 +38,6 @@ import androidx.compose.material3.VerticalDivider
 import androidx.compose.material3.rememberTopAppBarState
 import androidx.compose.material3.windowsizeclass.WindowSizeClass
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
@@ -52,6 +47,7 @@ import androidx.compose.ui.input.nestedscroll.NestedScrollSource
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -71,7 +67,6 @@ import com.bmc.buenacocina.core.NetworkStatus
 import com.bmc.buenacocina.domain.model.ProductDomain
 import com.bmc.buenacocina.ui.viewmodel.DetailedStoreViewModel
 import com.bmc.buenacocina.ui.viewmodel.DetailedStoreViewModel.DetailedStoreViewModelFactory
-import kotlinx.coroutines.delay
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -93,17 +88,6 @@ fun DetailedStoreScreen(
     val resultState = viewModel.resultState.collectAsStateWithLifecycle()
     val products = viewModel.products.collectAsLazyPagingItems()
     val netState = viewModel.netState.collectAsStateWithLifecycle()
-    var isFavoriteButtonEnabled by remember {
-        mutableStateOf(true)
-    }
-
-    LaunchedEffect(isFavoriteButtonEnabled) {
-        if (isFavoriteButtonEnabled)
-            return@LaunchedEffect
-        else
-            delay(3000L)
-        isFavoriteButtonEnabled = true
-    }
 
     DetailedStoreScreenContent(
         windowSizeClass = windowSizeClass,
@@ -111,12 +95,10 @@ fun DetailedStoreScreen(
         resultState = resultState.value,
         netState = netState.value,
         products = products,
-        isFavoriteButtonEnabled = isFavoriteButtonEnabled,
         scrollState = scrollState,
         scrollBehavior = scrollBehavior,
         onIntent = viewModel::onIntent,
         onProductClick = onProductClick,
-        onFavoriteButton = { isFavoriteButtonEnabled = false },
         onBackButton = onBackButton
     )
 }
@@ -129,12 +111,10 @@ fun DetailedStoreScreenContent(
     resultState: DetailedStoreUiResultState,
     netState: NetworkStatus,
     products: LazyPagingItems<ProductDomain>,
-    isFavoriteButtonEnabled: Boolean,
     scrollState: ScrollState,
     scrollBehavior: TopAppBarScrollBehavior,
     onIntent: (DetailedStoreIntent) -> Unit,
     onProductClick: (String, String) -> Unit,
-    onFavoriteButton: () -> Unit,
     onBackButton: () -> Unit
 ) {
     val storeName = if (uiState.store != null) uiState.store.name else ""
@@ -245,7 +225,7 @@ fun DetailedStoreScreenContent(
                                 Icon(
                                     imageVector = Icons.Filled.Star,
                                     contentDescription = "",
-                                    tint = Color.Yellow,
+                                    tint = colorResource(id = R.color.rating_bar_filled),
                                     modifier = Modifier
                                         .size(35.dp)
                                         .weight(1f)
@@ -261,19 +241,25 @@ fun DetailedStoreScreenContent(
                                 modifier = Modifier
                                     .fillMaxSize()
                                     .weight(1f),
-                                enabled = isFavoriteButtonEnabled,
+                                enabled = !resultState.isWaitingForFavoriteResult,
                                 onClick = {
                                     onIntent(DetailedStoreIntent.ToggleFavoriteStore)
-                                    onFavoriteButton()
                                 }
                             ) {
-                                Icon(
-                                    imageVector = icon,
-                                    contentDescription = "",
-                                    tint = color,
-                                    modifier = Modifier
-                                        .size(35.dp)
-                                )
+                                if (resultState.isWaitingForFavoriteResult) {
+                                    CircularProgressIndicator(
+                                        modifier = Modifier
+                                            .size(20.dp)
+                                    )
+                                } else {
+                                    Icon(
+                                        imageVector = icon,
+                                        contentDescription = "",
+                                        tint = color,
+                                        modifier = Modifier
+                                            .size(35.dp)
+                                    )
+                                }
                             }
                         }
                     }

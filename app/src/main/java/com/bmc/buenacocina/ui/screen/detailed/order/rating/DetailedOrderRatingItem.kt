@@ -40,7 +40,6 @@ fun DetailedOrderRatingItem(
     onItemCommentChange: (String, String) -> Unit
 ) {
     val rating = DecimalFormat("#.#").format(productRating.item.rating)
-    val comment = productRating.item.comment
     var isItemRatingDialogOpen by remember { mutableStateOf(false) }
 
     DetailedOrderRatingItemDialog(
@@ -109,7 +108,7 @@ fun DetailedOrderRatingItem(
                     .fillMaxWidth()
             )
             Text(
-                text = comment,
+                text = productRating.item.comment,
                 textAlign = TextAlign.Start,
                 fontSize = 14.5.sp,
                 color = Color.Gray,
@@ -121,7 +120,7 @@ fun DetailedOrderRatingItem(
             )
             if (productRating.commentError != null || productRating.ratingError != null) {
                 Text(
-                    text = "Hay errores en la calificacion adsdasdasdasdasdasd",
+                    text = "Hay errores en la calificacion",
                     textAlign = TextAlign.End,
                     fontSize = 15.sp,
                     fontWeight = FontWeight.Bold,

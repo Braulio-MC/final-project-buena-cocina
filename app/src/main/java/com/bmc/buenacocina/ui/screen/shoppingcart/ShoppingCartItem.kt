@@ -34,7 +34,11 @@ import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.bmc.buenacocina.R
+import com.bmc.buenacocina.core.DateUtils
 import com.bmc.buenacocina.domain.model.ShoppingCartItemDomain
+import java.math.BigDecimal
+import java.math.RoundingMode
+import java.time.LocalDateTime
 
 @Composable
 fun ShoppingCartItem(
@@ -42,6 +46,26 @@ fun ShoppingCartItem(
     onIncreaseButton: (String) -> Unit,
     onDecreaseButton: (String) -> Unit
 ) {
+    val pPriceUnit = item.product.price
+    val pQuantity = item.quantity.toBigDecimal()
+    val pPriceTotal = (pPriceUnit * pQuantity).setScale(2, RoundingMode.HALF_DOWN)
+    var finalPriceStr = "$$pPriceTotal"
+    if (item.product.discount.startDate != null && item.product.discount.endDate != null) {
+        if (
+            item.product.discount.percentage > BigDecimal.ZERO &&
+            DateUtils.isInRange(
+                LocalDateTime.now(),
+                item.product.discount.startDate,
+                item.product.discount.endDate
+            )
+        ) {
+            val discount =
+                pPriceUnit * (item.product.discount.percentage / BigDecimal.valueOf(100)) * pQuantity
+            val priceMinusDiscount = (pPriceTotal - discount).setScale(2, RoundingMode.HALF_DOWN)
+            finalPriceStr =
+                "$$pPriceTotal - $${discount.setScale(2, RoundingMode.HALF_DOWN)} = $$priceMinusDiscount"
+        }
+    }
     Card(
         elevation = CardDefaults.cardElevation(
             defaultElevation = 5.dp
@@ -84,11 +108,11 @@ fun ShoppingCartItem(
                         .fillMaxWidth()
                 )
                 Text(
-                    text = "$${item.product.price.toPlainString()}",
+                    text = finalPriceStr,
                     fontWeight = FontWeight.Light,
                     fontStyle = FontStyle.Italic,
                     color = Color.Gray,
-                    fontSize = 15.sp,
+                    fontSize = 14.sp,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis,
                     modifier = Modifier

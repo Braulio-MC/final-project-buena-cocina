@@ -4,6 +4,7 @@ import android.util.Log
 import androidx.compose.foundation.ScrollState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -52,6 +53,7 @@ import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -63,9 +65,12 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.bmc.buenacocina.R
+import com.bmc.buenacocina.core.DateUtils
 import com.bmc.buenacocina.core.NetworkStatus
 import com.bmc.buenacocina.ui.viewmodel.DetailedProductViewModel
+import java.math.BigDecimal
 import java.math.RoundingMode
+import java.time.LocalDateTime
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -194,6 +199,20 @@ fun DetailedProductScreenContent(
                     if (uiState.favorite != null) Icons.Filled.Favorite else Icons.Outlined.FavoriteBorder
                 val color = if (uiState.favorite != null) Color.Red else Color.Black
                 val price = uiState.product.price.setScale(2, RoundingMode.HALF_DOWN)
+                var discountPercentage: BigDecimal? = null
+                if (uiState.product.discount.startDate != null && uiState.product.discount.endDate != null) {
+                    if (
+                        uiState.product.discount.percentage > BigDecimal.ZERO &&
+                        DateUtils.isInRange(
+                            LocalDateTime.now(),
+                            uiState.product.discount.startDate,
+                            uiState.product.discount.endDate
+                        )
+                    ) {
+                        discountPercentage =
+                            uiState.product.discount.percentage.setScale(2, RoundingMode.HALF_DOWN)
+                    }
+                }
 
                 Column(
                     modifier = Modifier
@@ -208,19 +227,32 @@ fun DetailedProductScreenContent(
                             .weight(1f),
                         horizontalAlignment = Alignment.CenterHorizontally
                     ) {
-                        AsyncImage(
-                            model = ImageRequest.Builder(LocalContext.current)
-                                .data(uiState.product.image)
-                                .crossfade(true)
-                                .build(),
-                            contentDescription = "",
-                            contentScale = ContentScale.Crop,
-                            alignment = Alignment.Center,
+                        Box(
                             modifier = Modifier
-                                .padding(bottom = 20.dp)
                                 .fillMaxWidth()
                                 .height(250.dp)
-                        )
+                                .padding(bottom = 20.dp)
+                        ) {
+                            AsyncImage(
+                                model = ImageRequest.Builder(LocalContext.current)
+                                    .data(uiState.product.image)
+                                    .crossfade(true)
+                                    .build(),
+                                contentDescription = "",
+                                contentScale = ContentScale.Crop,
+                                alignment = Alignment.Center,
+                                modifier = Modifier
+                                    .fillMaxSize()
+                            )
+                            if (discountPercentage != null) {
+                                DetailedProductDiscountItem(
+                                    percentage = discountPercentage,
+                                    modifier = Modifier
+                                        .align(Alignment.TopEnd)
+                                        .padding(8.dp)
+                                )
+                            }
+                        }
                         Text(
                             text = uiState.product.name,
                             textAlign = TextAlign.Center,
@@ -268,7 +300,7 @@ fun DetailedProductScreenContent(
                                     Icon(
                                         imageVector = Icons.Filled.Star,
                                         contentDescription = "",
-                                        tint = Color.Yellow,
+                                        tint = colorResource(id = R.color.rating_bar_filled),
                                         modifier = Modifier
                                             .size(35.dp)
                                             .weight(1f)

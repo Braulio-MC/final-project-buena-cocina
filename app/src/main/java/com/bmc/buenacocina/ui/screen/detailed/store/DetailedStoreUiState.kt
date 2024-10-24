@@ -4,7 +4,7 @@ import com.bmc.buenacocina.domain.model.StoreDomain
 import com.bmc.buenacocina.domain.model.StoreFavoriteDomain
 
 data class DetailedStoreUiResultState(
-    val isWaitingForResult: Boolean = false
+    val isWaitingForFavoriteResult: Boolean = false
 )
 
 data class DetailedStoreUiState(

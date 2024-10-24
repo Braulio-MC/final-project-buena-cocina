@@ -122,7 +122,7 @@ class DetailedStoreViewModel @AssistedInject constructor(
 
     private fun createFavoriteStore() {
         _resultState.update { currentState ->
-            currentState.copy(isWaitingForResult = true)
+            currentState.copy(isWaitingForFavoriteResult = true)
         }
         viewModelScope.launch {
             uiState.value.store?.let { store ->
@@ -159,7 +159,7 @@ class DetailedStoreViewModel @AssistedInject constructor(
     private fun processCreateFavoriteSuccess() {
         viewModelScope.launch {
             _resultState.update { currentState ->
-                currentState.copy(isWaitingForResult = false)
+                currentState.copy(isWaitingForFavoriteResult = false)
             }
             _events.send(DetailedStoreEvent.CreateStoreFavoriteSuccess)
         }
@@ -168,7 +168,7 @@ class DetailedStoreViewModel @AssistedInject constructor(
     private fun processCreateFavoriteFailed(e: Exception) {
         viewModelScope.launch {
             _resultState.update { currentState ->
-                currentState.copy(isWaitingForResult = false)
+                currentState.copy(isWaitingForFavoriteResult = false)
             }
             _events.send(DetailedStoreEvent.CreateStoreFavoriteFailed(e))
         }
@@ -177,7 +177,7 @@ class DetailedStoreViewModel @AssistedInject constructor(
     private fun deleteFavoriteStore() {
         uiState.value.favorite?.let { favorite ->
             _resultState.update { currentState ->
-                currentState.copy(isWaitingForResult = true)
+                currentState.copy(isWaitingForFavoriteResult = true)
             }
             storeFavoriteRepository.delete(
                 favorite.id,
@@ -194,7 +194,7 @@ class DetailedStoreViewModel @AssistedInject constructor(
     private fun processDeleteFavoriteSuccess() {
         viewModelScope.launch {
             _resultState.update { currentState ->
-                currentState.copy(isWaitingForResult = false)
+                currentState.copy(isWaitingForFavoriteResult = false)
             }
             _events.send(DetailedStoreEvent.DeleteStoreFavoriteSuccess)
         }
@@ -203,7 +203,7 @@ class DetailedStoreViewModel @AssistedInject constructor(
     private fun processDeleteFavoriteFailed(e: Exception) {
         viewModelScope.launch {
             _resultState.update { currentState ->
-                currentState.copy(isWaitingForResult = false)
+                currentState.copy(isWaitingForFavoriteResult = false)
             }
             _events.send(DetailedStoreEvent.DeleteStoreFavoriteFailed(e))
         }
