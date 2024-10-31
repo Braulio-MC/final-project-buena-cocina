@@ -6,6 +6,8 @@ sealed interface Screen {
     sealed class Main(val route: String) : Screen {
         data object Home : Main("home")
         data object StoreCategory : Main("storeCategory")
+        data object StoreFavorite : Main("storeFavorite")
+        data object ProductFavorite : Main("productFavorite")
         data object OrderHistory : Main("orderHistory")
         data object Search : Main("search")
         data object ShoppingCart : Main("shoppingCart")

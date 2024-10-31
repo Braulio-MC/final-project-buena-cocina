@@ -1,21 +1,16 @@
-package com.bmc.buenacocina.ui.screen.category.restaurant
+package com.bmc.buenacocina.ui.screen.storefavorite
 
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Star
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -23,18 +18,18 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
-import com.bmc.buenacocina.R
-import com.bmc.buenacocina.domain.model.StoreDomain
+import com.bmc.buenacocina.domain.model.StoreFavoriteDomain
 
 @Composable
-fun StoreItem(
-    store: StoreDomain,
+fun StoreFavoriteItem(
+    storeFavorite: StoreFavoriteDomain,
     onClick: (String) -> Unit
 ) {
     Card(
@@ -43,55 +38,53 @@ fun StoreItem(
         ),
         shape = RoundedCornerShape(10.dp),
         modifier = Modifier
-            .padding(10.dp)
-            .fillMaxWidth()
-            .height(250.dp)
-            .clickable { onClick(store.id) }
+            .padding(5.dp)
+            .size(110.dp, 180.dp)
+            .clickable {
+                onClick(storeFavorite.storeId)
+            }
     ) {
         Column(
             modifier = Modifier
-                .padding(10.dp),
-            horizontalAlignment = Alignment.CenterHorizontally
+                .fillMaxSize(),
+            horizontalAlignment = Alignment.CenterHorizontally,
         ) {
             AsyncImage(
-                modifier = Modifier
-                    .padding(bottom = 5.dp)
-                    .fillMaxWidth()
-                    .weight(1f),
                 model = ImageRequest.Builder(LocalContext.current)
-                    .data(store.image)
+                    .data(storeFavorite.image)
                     .crossfade(true)
                     .build(),
                 contentDescription = "",
                 contentScale = ContentScale.Crop,
-                alignment = Alignment.Center
-            )
-            Text(
-                text = store.name,
-                fontSize = 20.sp,
-                color = Color.Black,
-                fontWeight = FontWeight.Bold,
+                alignment = Alignment.Center,
                 modifier = Modifier
                     .fillMaxWidth()
+                    .height(110.dp)
+                    .padding(bottom = 5.dp)
             )
-            Row(
+            Text(
+                text = storeFavorite.name,
+                fontSize = 18.sp,
+                fontWeight = FontWeight.Bold,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
                 modifier = Modifier
-                    .fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Icon(
-                    imageVector = Icons.Filled.Star,
-                    contentDescription = "",
-                    tint = colorResource(id = R.color.rating_bar_filled)
-                )
-                Spacer(modifier = Modifier.width(5.dp))
-                Text(
-                    text = "N/A",
-                    fontSize = 17.sp,
-                    color = Color.DarkGray,
-                    fontWeight = FontWeight.Bold,
-                )
-            }
+                    .fillMaxWidth()
+                    .padding(horizontal = 3.dp)
+            )
+            Spacer(modifier = Modifier.height(2.dp))
+            Text(
+                text = storeFavorite.description,
+                textAlign = TextAlign.Start,
+                fontSize = 14.sp,
+                color = Color.Gray,
+                fontWeight = FontWeight.Light,
+                maxLines = 3,
+                overflow = TextOverflow.Ellipsis,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 4.dp)
+            )
         }
     }
 }

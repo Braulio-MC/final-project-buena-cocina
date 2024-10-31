@@ -26,14 +26,26 @@ import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.bmc.buenacocina.domain.model.OrderLineDomain
+import java.math.BigDecimal
 import java.math.RoundingMode
 
 @Composable
 fun DetailedOrderItem(
     line: OrderLineDomain
 ) {
-    val total =
-        (line.quantity.toBigDecimal() * line.product.price).setScale(2, RoundingMode.HALF_DOWN)
+    val pPriceUnit = line.product.price.setScale(2, RoundingMode.HALF_DOWN)
+    val pQuantity = line.quantity.toBigDecimal()
+    val pDiscount = line.product.discount.percentage.setScale(2, RoundingMode.HALF_DOWN)
+    val discount = (pPriceUnit * (pDiscount / BigDecimal.valueOf(100)) * pQuantity).setScale(
+        2,
+        RoundingMode.HALF_DOWN
+    )
+    val total = (pPriceUnit * pQuantity - discount).setScale(2, RoundingMode.HALF_DOWN)
+    val discountStr = if (pDiscount > BigDecimal.ZERO) {
+        "$$discount ($pDiscount%)"
+    } else {
+        "No aplica"
+    }
 
     Row(
         modifier = Modifier
@@ -52,7 +64,7 @@ fun DetailedOrderItem(
                 .size(100.dp)
                 .weight(1f)
         )
-        Spacer(modifier = Modifier.width(5.dp))
+        Spacer(modifier = Modifier.width(10.dp))
         Column(
             modifier = Modifier
                 .fillMaxSize()
@@ -87,7 +99,37 @@ fun DetailedOrderItem(
                         .weight(1f)
                 )
                 Text(
-                    text = "$${line.product.price.toPlainString()}",
+                    text = "$$pPriceUnit",
+                    textAlign = TextAlign.End,
+                    fontSize = 15.sp,
+                    color = Color.Black,
+                    fontWeight = FontWeight.W400,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                    modifier = Modifier
+                        .weight(2f)
+                        .padding(end = 5.dp)
+                )
+            }
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    text = "Descuento",
+                    textAlign = TextAlign.End,
+                    fontSize = 14.sp,
+                    color = Color.Gray,
+                    fontStyle = FontStyle.Italic,
+                    fontWeight = FontWeight.Light,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                    modifier = Modifier
+                        .weight(1f)
+                )
+                Text(
+                    text = discountStr,
                     textAlign = TextAlign.End,
                     fontSize = 15.sp,
                     color = Color.Black,

@@ -14,6 +14,8 @@ fun MainGraph(
     windowSizeClass: WindowSizeClass,
     channelViewModelFactory: ChannelViewModelFactory,
     navController: NavHostController,
+    onStoreFavoriteBackButton: () -> Unit,
+    onProductFavoriteBackButton: () -> Unit,
     onStoreCategoryBackButton: () -> Unit,
     onDetailedStoreBackButton: () -> Unit,
     onDetailedProductBackButton: () -> Unit,
@@ -35,6 +37,28 @@ fun MainGraph(
             channelViewModelFactory = channelViewModelFactory,
             onSearchBarButton = {
                 navController.navigate(Screen.Main.Search.route) {
+                    launchSingleTop = true
+                }
+            },
+            onHomeProfileBottomStoreFavoritesButton = {
+                navController.navigate(Screen.Main.StoreFavorite.route) {
+                    launchSingleTop = true
+                }
+            },
+            onHomeProfileBottomProductFavoritesButton = {
+                navController.navigate(Screen.Main.ProductFavorite.route) {
+                    launchSingleTop = true
+                }
+            },
+            onStoreFavoriteBackButton = onStoreFavoriteBackButton,
+            onStoreFavoriteItemClick = { storeId ->
+                navController.navigate(Screen.MainSerializable.StoreDetailed(storeId)) {
+                    launchSingleTop = true
+                }
+            },
+            onProductFavoriteBackButton = onProductFavoriteBackButton,
+            onProductFavoriteItemClick = { productId, storeOwnerId ->
+                navController.navigate(Screen.MainSerializable.ProductDetailed(productId, storeOwnerId)) {
                     launchSingleTop = true
                 }
             },

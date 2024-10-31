@@ -89,9 +89,7 @@ fun ShoppingCartScreen(
     onSuccessfulOrderCreated: () -> Unit
 ) {
     val uiState = viewModel.uiState.collectAsStateWithLifecycle()
-    val shoppingCartState = viewModel.shoppingCartState.collectAsStateWithLifecycle()
     val paymentMethods = viewModel.paymentMethods.collectAsLazyPagingItems()
-    val locations = viewModel.locations().collectAsLazyPagingItems()
     val netState = viewModel.netState.collectAsStateWithLifecycle()
     var showDeliveryLocationBottomSheet by rememberSaveable {
         mutableStateOf(false)
@@ -128,9 +126,9 @@ fun ShoppingCartScreen(
         }
     }
 
-    if (showDeliveryLocationBottomSheet) {
+    if (showDeliveryLocationBottomSheet && uiState.value.shoppingCart != null) {
         DeliveryLocationBottomSheet(
-            locations = locations,
+            uiState.value.shoppingCart!!.store.id,
             sheetState = deliveryLocationSheetState,
             onIntent = viewModel::onIntent,
             onAfterItemClick = { showDeliveryLocationBottomSheet = false },
@@ -162,7 +160,6 @@ fun ShoppingCartScreen(
     ShoppingCartScreenContent(
         windowSizeClass = windowSizeClass,
         uiState = uiState.value,
-        shoppingCartState = shoppingCartState.value,
         netState = netState.value,
         scrollState = scrollState,
         snackbarHostState = snackbarHostState,
@@ -170,7 +167,7 @@ fun ShoppingCartScreen(
         onIntent = viewModel::onIntent,
         onBackButton = onBackButton,
         onDeliveryLocationClick = {
-            if (shoppingCartState.value.shoppingCart != null) {
+            if (uiState.value.shoppingCart != null) {
                 showDeliveryLocationBottomSheet = true
             } else {
                 showEmptyShoppingCartBottomSheet = true
@@ -185,7 +182,6 @@ fun ShoppingCartScreen(
 fun ShoppingCartScreenContent(
     windowSizeClass: WindowSizeClass,
     uiState: ShoppingCartUiState,
-    shoppingCartState: ShoppingCartCartUiState,
     netState: NetworkStatus,
     scrollState: ScrollState,
     snackbarHostState: SnackbarHostState,
@@ -243,25 +239,25 @@ fun ShoppingCartScreenContent(
                         uiState.currentPaymentMethod.name
                     else
                         stringResource(id = R.string.shopping_cart_empty_payment_method)
-                if (shoppingCartState.isLoading) {
+                if (uiState.isLoadingShoppingCartItems) {
                     LazyColumn(
                         modifier = Modifier
                             .padding(15.dp)
-                            .heightIn(max = 1000.dp)
+                            .height(300.dp)
                     ) {
-                        items(3) {
+                        items(2) {
                             ShoppingCartItemShimmer()
                         }
                     }
                 } else {
-                    if (shoppingCartState.shoppingCartItems.isNotEmpty()) {
+                    if (uiState.shoppingCartItems.isNotEmpty()) {
                         LazyColumn(
                             modifier = Modifier
                                 .padding(15.dp)
                                 .heightIn(max = 1000.dp)
                         ) {
                             items(
-                                items = shoppingCartState.shoppingCartItems,
+                                items = uiState.shoppingCartItems,
                                 key = { item -> item.id }
                             ) { item ->
                                 ShoppingCartItem(
@@ -453,7 +449,7 @@ fun ShoppingCartScreenContent(
                                 )
                             )
                         }
-                        if (uiState.currentDeliveryLocationError != null && shoppingCartState.shoppingCart != null) {
+                        if (uiState.currentDeliveryLocationError != null && uiState.shoppingCart != null) {
                             Text(
                                 text = uiState.currentDeliveryLocationError.asString(),
                                 textAlign = TextAlign.End,
@@ -508,7 +504,7 @@ fun ShoppingCartScreenContent(
                                 )
                             )
                         }
-                        if (uiState.currentPaymentMethodError != null && shoppingCartState.shoppingCart != null) {
+                        if (uiState.currentPaymentMethodError != null && uiState.shoppingCart != null) {
                             Text(
                                 text = uiState.currentPaymentMethodError.asString(),
                                 textAlign = TextAlign.End,
@@ -526,14 +522,14 @@ fun ShoppingCartScreenContent(
                     onClick = {
                         onIntent(ShoppingCartIntent.Order)
                     },
-                    enabled = !uiState.isWaitingForResult,
+                    enabled = !uiState.isWaitingForOrderResult,
                     modifier = Modifier
                         .padding(bottom = 20.dp)
                         .align(Alignment.CenterHorizontally)
                         .size(200.dp, 50.dp),
                     shape = RoundedCornerShape(10.dp)
                 ) {
-                    if (uiState.isWaitingForResult) {
+                    if (uiState.isWaitingForOrderResult) {
                         CircularProgressIndicator(
                             modifier = Modifier
                                 .align(Alignment.CenterVertically)

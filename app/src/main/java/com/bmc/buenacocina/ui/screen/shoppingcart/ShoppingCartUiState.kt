@@ -7,16 +7,13 @@ import com.bmc.buenacocina.domain.model.ShoppingCartDomain
 import com.bmc.buenacocina.domain.model.ShoppingCartItemDomain
 import java.math.BigDecimal
 
-data class ShoppingCartCartUiState(
-    val isLoading: Boolean = false,
-    val shoppingCart: ShoppingCartDomain? = null,
-    val shoppingCartItems: List<ShoppingCartItemDomain> = emptyList(),
-)
-
 data class ShoppingCartUiState(
-    val isLoading: Boolean = false,
-    val isWaitingForResult: Boolean = false,
+    val isLoadingShoppingCart: Boolean = false,
+    val isLoadingShoppingCartItems: Boolean = false,
+    val isWaitingForOrderResult: Boolean = false,
+    val shoppingCart: ShoppingCartDomain? = null,
     val shoppingCartError: UiText? = null,
+    val shoppingCartItems: List<ShoppingCartItemDomain> = emptyList(),
     val shoppingCartItemsError: UiText? = null,
     val total: CartTotalUiState = CartTotalUiState(),
     val currentDeliveryLocation: LocationDomain? = null,

@@ -10,6 +10,7 @@ object ProductFavoriteMapper {
             id = network.documentId,
             userId = network.userId,
             productId = network.productId,
+            productStoreOwnerId = network.productStoreOwnerId,
             productName = network.productName,
             productImage = network.productImage,
             productDescription = network.productDescription,

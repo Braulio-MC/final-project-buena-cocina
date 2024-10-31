@@ -60,7 +60,9 @@ fun HomeScreen(
     profileBottomSheetState: SheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true),
     onSearchBarButton: () -> Unit,
     onStoreCategoryButton: () -> Unit,
-    onLogoutButton: (Boolean) -> Unit
+    onLogoutButton: (Boolean) -> Unit,
+    onStoreFavoritesButton: () -> Unit,
+    onProductFavoritesButton: () -> Unit
 ) {
     val uiState = viewModel.uiState.collectAsStateWithLifecycle()
     var showProfileBottomSheet by rememberSaveable {
@@ -76,6 +78,8 @@ fun HomeScreen(
                 onLogoutButton(it)
                 showProfileBottomSheet = false
             },
+            onStoreFavoritesButton = onStoreFavoritesButton,
+            onProductFavoritesButton = onProductFavoritesButton,
             onDismissRequest = { showProfileBottomSheet = false }
         )
     }

@@ -17,8 +17,10 @@ import com.bmc.buenacocina.ui.screen.detailed.product.DetailedProductScreen
 import com.bmc.buenacocina.ui.screen.detailed.store.DetailedStoreScreen
 import com.bmc.buenacocina.ui.screen.home.HomeScreen
 import com.bmc.buenacocina.ui.screen.orderhistory.OrderHistoryScreen
+import com.bmc.buenacocina.ui.screen.productfavorite.ProductFavoriteScreen
 import com.bmc.buenacocina.ui.screen.search.SearchScreen
 import com.bmc.buenacocina.ui.screen.shoppingcart.ShoppingCartScreen
+import com.bmc.buenacocina.ui.screen.storefavorite.StoreFavoriteScreen
 import io.getstream.chat.android.compose.viewmodel.channels.ChannelViewModelFactory
 import io.getstream.chat.android.models.Channel
 
@@ -26,6 +28,12 @@ fun NavGraphBuilder.mainGraph(
     windowSizeClass: WindowSizeClass,
     channelViewModelFactory: ChannelViewModelFactory,
     onSearchBarButton: () -> Unit,
+    onHomeProfileBottomStoreFavoritesButton: () -> Unit,
+    onHomeProfileBottomProductFavoritesButton: () -> Unit,
+    onStoreFavoriteBackButton: () -> Unit,
+    onStoreFavoriteItemClick: (String) -> Unit,
+    onProductFavoriteBackButton: () -> Unit,
+    onProductFavoriteItemClick: (String, String) -> Unit,
     onStoreCategoryBackButton: () -> Unit,
     onStoreCategoryButton: () -> Unit,
     onStoreCategoryStore: (String) -> Unit,
@@ -56,9 +64,21 @@ fun NavGraphBuilder.mainGraph(
             windowSizeClass = windowSizeClass,
             onSearchBarButton = onSearchBarButton,
             onStoreCategoryButton = onStoreCategoryButton,
-            onLogoutButton = onLogoutButton
+            onLogoutButton = onLogoutButton,
+            onStoreFavoritesButton = onHomeProfileBottomStoreFavoritesButton,
+            onProductFavoritesButton = onHomeProfileBottomProductFavoritesButton
         )
         searchScreen()
+        storeFavoriteScreen(
+            windowSizeClass = windowSizeClass,
+            onStoreFavoriteClick = onStoreFavoriteItemClick,
+            onBackButton = onStoreFavoriteBackButton
+        )
+        productFavoriteScreen(
+            windowSizeClass = windowSizeClass,
+            onProductFavoriteClick = onProductFavoriteItemClick,
+            onBackButton = onProductFavoriteBackButton
+        )
         storeCategoryScreen(
             windowSizeClass = windowSizeClass,
             onSearchBarButton = onSearchBarButton,
@@ -113,14 +133,18 @@ fun NavGraphBuilder.homeScreen(
     windowSizeClass: WindowSizeClass,
     onSearchBarButton: () -> Unit,
     onStoreCategoryButton: () -> Unit,
-    onLogoutButton: (Boolean) -> Unit
+    onLogoutButton: (Boolean) -> Unit,
+    onStoreFavoritesButton: () -> Unit,
+    onProductFavoritesButton: () -> Unit
 ) {
     composable(Screen.Main.Home.route) {
         HomeScreen(
             windowSizeClass = windowSizeClass,
             onSearchBarButton = onSearchBarButton,
             onStoreCategoryButton = onStoreCategoryButton,
-            onLogoutButton = onLogoutButton
+            onLogoutButton = onLogoutButton,
+            onStoreFavoritesButton = onStoreFavoritesButton,
+            onProductFavoritesButton = onProductFavoritesButton
         )
     }
 }
@@ -128,6 +152,36 @@ fun NavGraphBuilder.homeScreen(
 fun NavGraphBuilder.searchScreen() {
     composable(Screen.Main.Search.route) {
         SearchScreen()
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+fun NavGraphBuilder.storeFavoriteScreen(
+    windowSizeClass: WindowSizeClass,
+    onStoreFavoriteClick: (String) -> Unit,
+    onBackButton: () -> Unit
+) {
+    composable(Screen.Main.StoreFavorite.route) {
+        StoreFavoriteScreen(
+            windowSizeClass = windowSizeClass,
+            onStoreFavoriteClick = onStoreFavoriteClick,
+            onBackButton = onBackButton
+        )
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+fun NavGraphBuilder.productFavoriteScreen(
+    windowSizeClass: WindowSizeClass,
+    onProductFavoriteClick: (String, String) -> Unit,
+    onBackButton: () -> Unit
+) {
+    composable(Screen.Main.ProductFavorite.route) {
+        ProductFavoriteScreen(
+            windowSizeClass = windowSizeClass,
+            onProductFavoriteClick = onProductFavoriteClick,
+            onBackButton = onBackButton
+        )
     }
 }
 

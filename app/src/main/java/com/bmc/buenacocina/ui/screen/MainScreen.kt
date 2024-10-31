@@ -124,6 +124,8 @@ fun MainScreenContent(
             windowSizeClass = wsc,
             channelViewModelFactory = channelViewModelFactory,
             navController = navController,
+            onStoreFavoriteBackButton = popBackStack,
+            onProductFavoriteBackButton = popBackStack,
             onStoreCategoryBackButton = popBackStack,
             onDetailedStoreBackButton = popBackStack,
             onDetailedProductBackButton = popBackStack,

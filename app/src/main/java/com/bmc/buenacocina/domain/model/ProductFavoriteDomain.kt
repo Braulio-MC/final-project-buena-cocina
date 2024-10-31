@@ -6,6 +6,7 @@ data class ProductFavoriteDomain (
     val id: String,
     val userId: String,
     val productId: String,
+    val productStoreOwnerId : String,
     val productName: String,
     val productImage: String,
     val productDescription: String,

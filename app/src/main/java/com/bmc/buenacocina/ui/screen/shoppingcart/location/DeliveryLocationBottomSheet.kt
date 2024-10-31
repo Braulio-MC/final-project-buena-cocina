@@ -14,15 +14,43 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.paging.LoadState
 import androidx.paging.compose.LazyPagingItems
+import androidx.paging.compose.collectAsLazyPagingItems
 import androidx.paging.compose.itemKey
 import com.bmc.buenacocina.domain.model.LocationDomain
 import com.bmc.buenacocina.ui.screen.shoppingcart.ShoppingCartIntent
+import com.bmc.buenacocina.ui.viewmodel.DeliveryLocationBottomSheetViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun DeliveryLocationBottomSheet(
+    storeId: String,
+    viewModel: DeliveryLocationBottomSheetViewModel = hiltViewModel(
+        creationCallback = { factory: DeliveryLocationBottomSheetViewModel.DeliveryLocationBottomSheetViewModelFactory ->
+            factory.create(storeId)
+        }
+    ),
+    sheetState: SheetState,
+    onIntent: (ShoppingCartIntent) -> Unit,
+    onAfterItemClick: () -> Unit,
+    onDismissRequest: () -> Unit
+) {
+    val locations = viewModel.locations.collectAsLazyPagingItems()
+
+    DeliveryLocationBottomSheetContent(
+        locations = locations,
+        sheetState = sheetState,
+        onIntent = onIntent,
+        onAfterItemClick = onAfterItemClick,
+        onDismissRequest = onDismissRequest
+    )
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun DeliveryLocationBottomSheetContent(
     locations: LazyPagingItems<LocationDomain>,
     sheetState: SheetState,
     onIntent: (ShoppingCartIntent) -> Unit,

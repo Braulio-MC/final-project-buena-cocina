@@ -4,6 +4,7 @@ import androidx.compose.foundation.ScrollState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.IntrinsicSize
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -12,6 +13,8 @@ import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -57,9 +60,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.bmc.buenacocina.core.DateUtils
 import com.bmc.buenacocina.core.OrderStatus
-import com.bmc.buenacocina.core.getOrderTotal
 import com.bmc.buenacocina.ui.viewmodel.DetailedOrderViewModel
-import java.math.RoundingMode
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -79,7 +80,6 @@ fun DetailedOrderScreen(
     onBackButton: () -> Unit
 ) {
     val uiState = viewModel.uiState.collectAsStateWithLifecycle()
-    val resultState = viewModel.resultState.collectAsStateWithLifecycle()
     val currentContext = LocalContext.current
     val snackbarHostState = remember {
         SnackbarHostState()
@@ -105,7 +105,6 @@ fun DetailedOrderScreen(
     DetailedOrderScreenContent(
         windowSizeClass = windowSizeClass,
         uiState = uiState.value,
-        resultState = resultState.value,
         scrollState = scrollState,
         snackbarHostState = snackbarHostState,
         scrollBehavior = scrollBehavior,
@@ -120,7 +119,6 @@ fun DetailedOrderScreen(
 fun DetailedOrderScreenContent(
     windowSizeClass: WindowSizeClass,
     uiState: DetailedOrderUiState,
-    resultState: DetailedOrderUiResultState,
     scrollState: ScrollState,
     snackbarHostState: SnackbarHostState,
     scrollBehavior: TopAppBarScrollBehavior,
@@ -151,9 +149,9 @@ fun DetailedOrderScreenContent(
                 actions = {
                     IconButton(
                         onClick = { onIntent(DetailedOrderIntent.CreateChannel) },
-                        enabled = uiState.order != null && !resultState.isWaitingForChannelResult
+                        enabled = uiState.order != null && !uiState.isWaitingForChannelResult
                     ) {
-                        if (resultState.isWaitingForChannelResult) {
+                        if (uiState.isWaitingForChannelResult) {
                             CircularProgressIndicator(
                                 modifier = Modifier
                                     .align(Alignment.CenterVertically)
@@ -189,7 +187,7 @@ fun DetailedOrderScreenContent(
             SnackbarHost(hostState = snackbarHostState)
         }
     ) { paddingValues ->
-        if (uiState.isLoading) {
+        if (uiState.isLoadingOrder) {
 
         } else {
             if (uiState.order != null) {
@@ -204,7 +202,6 @@ fun DetailedOrderScreenContent(
                 val updatedAt = uiState.order.updatedAt?.let {
                     DateUtils.localDateTimeToString(it)
                 } ?: "No se pudo obtener la fecha"
-                val orderTotal = getOrderTotal(uiState.lines).setScale(2, RoundingMode.HALF_DOWN)
 
                 Column(
                     modifier = Modifier
@@ -213,7 +210,15 @@ fun DetailedOrderScreenContent(
                         .verticalScroll(scrollState),
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
-                    // Image grid here
+                    LazyVerticalGrid(
+                        columns = GridCells.Fixed(2),
+                        contentPadding = PaddingValues(3.dp),
+                        modifier = Modifier
+                            .padding(top = 10.dp)
+                            .size(200.dp)
+                    ) {
+
+                    }
                     Text(
                         text = orderDesc,
                         textAlign = TextAlign.Center,
@@ -327,7 +332,7 @@ fun DetailedOrderScreenContent(
                                         .weight(1f)
                                 )
                                 Text(
-                                    text = "$$orderTotal",
+                                    text = "$${uiState.orderTotal}",
                                     textAlign = TextAlign.End,
                                     color = Color.DarkGray,
                                     fontSize = 17.sp,

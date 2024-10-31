@@ -1,9 +1,13 @@
 package com.bmc.buenacocina.ui.screen.home
 
 import android.content.Context
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -12,10 +16,12 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.SheetState
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.VerticalDivider
 import androidx.compose.material3.minimumInteractiveComponentSize
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -43,6 +49,8 @@ fun ProfileBottomSheet(
     sheetState: SheetState,
     onStartLogout: (Context, () -> Unit, () -> Unit) -> Unit,
     onLogoutButton: (Boolean) -> Unit,
+    onStoreFavoritesButton: () -> Unit,
+    onProductFavoritesButton: () -> Unit,
     onDismissRequest: () -> Unit
 ) {
     var isLogoutButtonEnabled by remember {
@@ -58,6 +66,8 @@ fun ProfileBottomSheet(
         },
         onStartLogout = onStartLogout,
         onLogoutButton = onLogoutButton,
+        onStoreFavoritesButton = onStoreFavoritesButton,
+        onProductFavoritesButton = onProductFavoritesButton,
         onDismissRequest = onDismissRequest
     )
 }
@@ -71,6 +81,8 @@ fun ProfileBottomSheetContent(
     onLogoutButtonChanged: (Boolean) -> Unit,
     onStartLogout: (Context, () -> Unit, () -> Unit) -> Unit,
     onLogoutButton: (Boolean) -> Unit,
+    onStoreFavoritesButton: () -> Unit,
+    onProductFavoritesButton: () -> Unit,
     onDismissRequest: () -> Unit
 ) {
     val currentContext = LocalContext.current
@@ -85,113 +97,182 @@ fun ProfileBottomSheetContent(
                 .fillMaxWidth(),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-           if (uiState.userProfile != null) {
-               val userName = uiState.userProfile.name ?: ""
-               val userEmail = uiState.userProfile.email ?: ""
-               val isEmailVerified = uiState.userProfile.isEmailVerified ?: false
-               val isEmailVerifiedText = if (isEmailVerified) "Si" else "No"
+            if (uiState.userProfile != null) {
+                val userName = uiState.userProfile.name ?: ""
+                val userEmail = uiState.userProfile.email ?: ""
+                val isEmailVerified = uiState.userProfile.isEmailVerified ?: false
+                val isEmailVerifiedText = if (isEmailVerified) "Si" else "No"
 
-               Row(
-                   modifier = Modifier
-                       .fillMaxWidth(),
-                   verticalAlignment = Alignment.CenterVertically
-               ) {
-                   Surface(
-                       shape = RoundedCornerShape(100.dp),
-                       modifier = Modifier
-                           .size(100.dp)
-                   ) {
-                       AsyncImage(
-                           model = ImageRequest.Builder(LocalContext.current)
-                               .data(uiState.userProfile.pictureURL)
-                               .crossfade(true)
-                               .build(),
-                           contentDescription = null,
-                           contentScale = ContentScale.Crop,
-                           alignment = Alignment.Center
-                       )
-                   }
-                   Spacer(modifier = Modifier.width(20.dp))
-                   Column(
-                       modifier = Modifier
-                           .weight(1f),
-                   ) {
-                       Text(
-                           text = userName,
-                           textAlign = TextAlign.Start,
-                           color = Color.Black,
-                           fontSize = 20.sp,
-                           fontWeight = FontWeight.Bold,
-                           maxLines = 1,
-                           overflow = TextOverflow.Ellipsis,
-                           modifier = Modifier
-                               .fillMaxWidth()
-                       )
-                       Spacer(modifier = Modifier.height(5.dp))
-                       Row(
-                           modifier = Modifier
-                               .fillMaxWidth(),
-                           verticalAlignment = Alignment.CenterVertically,
-                       ) {
-                           Text(
-                               text = "Correo electronico",
-                               textAlign = TextAlign.Start,
-                               fontSize = 16.sp,
-                               color = Color.Gray,
-                               fontStyle = FontStyle.Italic,
-                               fontWeight = FontWeight.Light,
-                               maxLines = 1,
-                               overflow = TextOverflow.Ellipsis,
-                               modifier = Modifier
-                                   .weight(1f)
-                           )
-                           Text(
-                               text = userEmail,
-                               textAlign = TextAlign.End,
-                               color = Color.DarkGray,
-                               fontSize = 16.sp,
-                               fontWeight = FontWeight.W500,
-                               maxLines = 1,
-                               overflow = TextOverflow.Ellipsis,
-                               modifier = Modifier
-                                   .weight(1.4f)
-                                   .padding(end = 5.dp)
-                           )
-                       }
-                       Spacer(modifier = Modifier.height(5.dp))
-                       Row(
-                           modifier = Modifier
-                               .fillMaxWidth(),
-                           verticalAlignment = Alignment.CenterVertically,
-                       ) {
-                           Text(
-                               text = "Correo verificado",
-                               textAlign = TextAlign.Start,
-                               fontSize = 16.sp,
-                               color = Color.Gray,
-                               fontStyle = FontStyle.Italic,
-                               fontWeight = FontWeight.Light,
-                               maxLines = 1,
-                               overflow = TextOverflow.Ellipsis,
-                               modifier = Modifier
-                                   .weight(1f)
-                           )
-                           Text(
-                               text = isEmailVerifiedText,
-                               textAlign = TextAlign.End,
-                               color = Color.DarkGray,
-                               fontSize = 16.sp,
-                               fontWeight = FontWeight.W500,
-                               maxLines = 1,
-                               overflow = TextOverflow.Ellipsis,
-                               modifier = Modifier
-                                   .weight(1.4f)
-                                   .padding(end = 5.dp)
-                           )
-                       }
-                   }
-               }
-           }
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Surface(
+                        shape = RoundedCornerShape(100.dp),
+                        modifier = Modifier
+                            .size(100.dp)
+                    ) {
+                        AsyncImage(
+                            model = ImageRequest.Builder(LocalContext.current)
+                                .data(uiState.userProfile.pictureURL)
+                                .crossfade(true)
+                                .build(),
+                            contentDescription = null,
+                            contentScale = ContentScale.Crop,
+                            alignment = Alignment.Center
+                        )
+                    }
+                    Spacer(modifier = Modifier.width(20.dp))
+                    Column(
+                        modifier = Modifier
+                            .weight(1f),
+                    ) {
+                        Text(
+                            text = userName,
+                            textAlign = TextAlign.Start,
+                            color = Color.Black,
+                            fontSize = 20.sp,
+                            fontWeight = FontWeight.Bold,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis,
+                            modifier = Modifier
+                                .fillMaxWidth()
+                        )
+                        Spacer(modifier = Modifier.height(5.dp))
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth(),
+                            verticalAlignment = Alignment.CenterVertically,
+                        ) {
+                            Text(
+                                text = "Correo electronico",
+                                textAlign = TextAlign.Start,
+                                fontSize = 16.sp,
+                                color = Color.Gray,
+                                fontStyle = FontStyle.Italic,
+                                fontWeight = FontWeight.Light,
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis,
+                                modifier = Modifier
+                                    .weight(1f)
+                            )
+                            Text(
+                                text = userEmail,
+                                textAlign = TextAlign.End,
+                                color = Color.DarkGray,
+                                fontSize = 16.sp,
+                                fontWeight = FontWeight.W500,
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis,
+                                modifier = Modifier
+                                    .weight(1.4f)
+                                    .padding(end = 5.dp)
+                            )
+                        }
+                        Spacer(modifier = Modifier.height(5.dp))
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth(),
+                            verticalAlignment = Alignment.CenterVertically,
+                        ) {
+                            Text(
+                                text = "Correo verificado",
+                                textAlign = TextAlign.Start,
+                                fontSize = 16.sp,
+                                color = Color.Gray,
+                                fontStyle = FontStyle.Italic,
+                                fontWeight = FontWeight.Light,
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis,
+                                modifier = Modifier
+                                    .weight(1f)
+                            )
+                            Text(
+                                text = isEmailVerifiedText,
+                                textAlign = TextAlign.End,
+                                color = Color.DarkGray,
+                                fontSize = 16.sp,
+                                fontWeight = FontWeight.W500,
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis,
+                                modifier = Modifier
+                                    .weight(1.4f)
+                                    .padding(end = 5.dp)
+                            )
+                        }
+                        Spacer(modifier = Modifier.height(10.dp))
+                        Text(
+                            text = "Favoritos",
+                            textAlign = TextAlign.Start,
+                            fontSize = 18.sp,
+                            fontWeight = FontWeight.Normal,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis,
+                            modifier = Modifier
+                                .fillMaxWidth()
+                        )
+                        HorizontalDivider(
+                            modifier = Modifier
+                                .padding(top = 5.dp),
+                            thickness = 2.dp,
+                        )
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(50.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.SpaceBetween
+                        ) {
+                            Box(
+                                modifier = Modifier
+                                    .weight(1f)
+                                    .fillMaxHeight()
+                                    .padding(3.dp)
+                                    .clickable {
+                                        onDismissRequest()
+                                        onStoreFavoritesButton()
+                                    },
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Text(
+                                    text = "Tiendas",
+                                    textAlign = TextAlign.Center,
+                                    fontSize = 16.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    maxLines = 1,
+                                    overflow = TextOverflow.Ellipsis
+                                )
+                            }
+                            VerticalDivider(
+                                modifier = Modifier
+                                    .fillMaxHeight(),
+                                thickness = 2.dp
+                            )
+                            Box(
+                                modifier = Modifier
+                                    .weight(1f)
+                                    .fillMaxHeight()
+                                    .padding(3.dp)
+                                    .clickable {
+                                        onDismissRequest()
+                                        onProductFavoritesButton()
+                                    },
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Text(
+                                    text = "Productos",
+                                    textAlign = TextAlign.Center,
+                                    fontSize = 16.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    maxLines = 1,
+                                    overflow = TextOverflow.Ellipsis
+                                )
+                            }
+                        }
+                    }
+                }
+            }
             Button(
                 onClick = {
                     onLogoutButtonChanged(false)

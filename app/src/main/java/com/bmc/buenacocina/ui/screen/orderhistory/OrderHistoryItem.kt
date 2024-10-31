@@ -31,7 +31,6 @@ import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.bmc.buenacocina.R
@@ -39,8 +38,6 @@ import com.bmc.buenacocina.core.DateUtils
 import com.bmc.buenacocina.core.OrderStatus
 import com.bmc.buenacocina.core.getOrderStatusColor
 import com.bmc.buenacocina.domain.model.OrderDomain
-import com.bmc.buenacocina.ui.theme.BuenaCocinaTheme
-import java.time.LocalDateTime
 
 @Composable
 fun OrderHistoryItem(
@@ -253,40 +250,5 @@ fun OrderHistoryItem(
                 }
             }
         }
-    }
-}
-
-
-@Composable
-@Preview(showBackground = true)
-fun OrderHistoryItemPreview() {
-    BuenaCocinaTheme {
-        OrderHistoryItem(
-            order = OrderDomain(
-                id = "1",
-                status = OrderStatus.CREATED.status,
-                rated = false,
-                user = OrderDomain.OrderUserDomain(
-                    id = "1",
-                    name = "Braulio Martinez"
-                ),
-                deliveryLocation = OrderDomain.OrderDeliveryLocationDomain(
-                    id = "1",
-                    name = "Direccion de prueba"
-                ),
-                store = OrderDomain.OrderStoreDomain(
-                    id = "1",
-                    ownerId = "1",
-                    name = "Tienda de prueba"
-                ),
-                paymentMethod = OrderDomain.OrderPaymentMethodDomain(
-                    id = "1",
-                    name = "Tarjeta de credito"
-                ),
-                createdAt = LocalDateTime.now(),
-                updatedAt = LocalDateTime.now(),
-            ),
-            onClick = {}
-        )
     }
 }

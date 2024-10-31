@@ -5,5 +5,6 @@ data class CreateProductFavoriteDto (
     val productId: String,
     val productName: String,
     val productImage: String,
-    val productDescription: String
+    val productDescription: String,
+    val productStoreOwnerId: String
 )

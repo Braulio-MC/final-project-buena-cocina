@@ -25,6 +25,7 @@ class ProductFavoriteService @Inject constructor(
             "id" to docRef.id,
             "userId" to dto.userId,
             "productId" to dto.productId,
+            "productStoreOwnerId" to dto.productStoreOwnerId,
             "productName" to dto.productName,
             "productImage" to dto.productImage,
             "productDescription" to dto.productDescription,

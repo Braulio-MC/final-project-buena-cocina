@@ -152,6 +152,7 @@ class DetailedProductViewModel @AssistedInject constructor(
                         val dto = CreateProductFavoriteDto(
                             userId = result.data,
                             productId = product.id,
+                            productStoreOwnerId = storeOwnerId,
                             productName = product.name,
                             productImage = product.image,
                             productDescription = product.description
