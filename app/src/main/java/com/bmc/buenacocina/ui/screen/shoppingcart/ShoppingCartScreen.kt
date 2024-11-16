@@ -1,6 +1,9 @@
 package com.bmc.buenacocina.ui.screen.shoppingcart
 
+import android.Manifest
 import android.util.Log
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.ScrollState
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -47,6 +50,7 @@ import androidx.compose.material3.rememberTopAppBarState
 import androidx.compose.material3.windowsizeclass.WindowSizeClass
 import androidx.compose.material3.windowsizeclass.WindowWidthSizeClass
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -64,12 +68,20 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.core.app.ActivityCompat.shouldShowRequestPermissionRationale
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
+import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.paging.compose.collectAsLazyPagingItems
 import com.bmc.buenacocina.R
 import com.bmc.buenacocina.core.NetworkStatus
-import com.bmc.buenacocina.ui.screen.shoppingcart.location.DeliveryLocationBottomSheet
+import com.bmc.buenacocina.domain.LocationPermissionTextProvider
+import com.bmc.buenacocina.domain.getActivity
+import com.bmc.buenacocina.domain.hasLocationPermissionFlow
+import com.bmc.buenacocina.ui.openAppSettings
+import com.bmc.buenacocina.ui.screen.common.LocationPermissionDialog
 import com.bmc.buenacocina.ui.screen.shoppingcart.paymentmethod.PaymentMethodBottomSheet
 import com.bmc.buenacocina.ui.viewmodel.ShoppingCartViewModel
 
@@ -81,7 +93,6 @@ fun ShoppingCartScreen(
     topAppBarState: TopAppBarState = rememberTopAppBarState(),
     scrollState: ScrollState = rememberScrollState(),
     scrollBehavior: TopAppBarScrollBehavior = TopAppBarDefaults.pinnedScrollBehavior(topAppBarState),
-    deliveryLocationSheetState: SheetState = rememberModalBottomSheetState(),
     paymentMethodSheetState: SheetState = rememberModalBottomSheetState(),
     emptyShoppingCartSheetState: SheetState = rememberModalBottomSheetState(),
     onBackButton: () -> Unit,
@@ -89,9 +100,11 @@ fun ShoppingCartScreen(
     onSuccessfulOrderCreated: () -> Unit
 ) {
     val uiState = viewModel.uiState.collectAsStateWithLifecycle()
+    val locationPermissionQueue by viewModel.visiblePermissionDialogQueue.collectAsStateWithLifecycle()
+    val currentContext = LocalContext.current
     val paymentMethods = viewModel.paymentMethods.collectAsLazyPagingItems()
     val netState = viewModel.netState.collectAsStateWithLifecycle()
-    var showDeliveryLocationBottomSheet by rememberSaveable {
+    var showDeliveryLocationDialog by rememberSaveable {
         mutableStateOf(false)
     }
     var showPaymentMethodBottomSheet by rememberSaveable {
@@ -103,7 +116,17 @@ fun ShoppingCartScreen(
     val snackbarHostState = remember {
         SnackbarHostState()
     }
-    val currentContext = LocalContext.current
+    val locationPermissionResultLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.RequestPermission(),
+        onResult = { isGranted ->
+            viewModel.onPermissionResult(
+                permission = Manifest.permission.ACCESS_FINE_LOCATION,
+                isGranted = isGranted
+            )
+        }
+    )
+    val lifecycleOwner = LocalLifecycleOwner.current
+    val isForeground = remember { mutableStateOf(false) }
 
     LaunchedEffect(key1 = currentContext) {
         viewModel.events.collect { event ->
@@ -126,13 +149,64 @@ fun ShoppingCartScreen(
         }
     }
 
-    if (showDeliveryLocationBottomSheet && uiState.value.shoppingCart != null) {
-        DeliveryLocationBottomSheet(
-            uiState.value.shoppingCart!!.store.id,
-            sheetState = deliveryLocationSheetState,
+    DisposableEffect(lifecycleOwner) {
+        val observer = LifecycleEventObserver { _, event ->
+            isForeground.value = event == Lifecycle.Event.ON_RESUME
+        }
+        lifecycleOwner.lifecycle.addObserver(observer)
+        onDispose { lifecycleOwner.lifecycle.removeObserver(observer) }
+    }
+
+    LaunchedEffect(isForeground.value, showDeliveryLocationDialog) {
+        if (isForeground.value && showDeliveryLocationDialog) {
+            currentContext.hasLocationPermissionFlow().collect { hasLocationPermission ->
+                if (hasLocationPermission && showDeliveryLocationDialog) {
+                    viewModel.startLocationUpdates()
+                } else {
+                    viewModel.stopLocationUpdates()
+                }
+            }
+        } else {
+            viewModel.stopLocationUpdates()
+        }
+    }
+
+    locationPermissionQueue
+        .reversed()
+        .forEach { permission ->
+            LocationPermissionDialog(
+                permissionTextProvider = when (permission) {
+                    Manifest.permission.ACCESS_FINE_LOCATION -> LocationPermissionTextProvider()
+                    else -> return@forEach
+                },
+                isPermanentlyDeclined = if (currentContext.getActivity() != null) {
+                    !shouldShowRequestPermissionRationale(
+                        currentContext.getActivity()!!,
+                        permission
+                    )
+                } else false,
+                onDismiss = viewModel::dismissPermissionDialog,
+                onOkClick = {
+                    viewModel.dismissPermissionDialog()
+                    locationPermissionResultLauncher.launch(permission)
+                },
+                onGoToAppSettingsClick = if (currentContext.getActivity() != null) {
+                    { currentContext.getActivity()!!.openAppSettings() }
+                } else {
+                    {}
+                }
+            )
+        }
+
+    if (uiState.value.cuceiCenterOnMap != null && uiState.value.cuceiAreaBoundsOnMap != null) {
+        DeliveryLocationDialog(
+            isDialogOpen = showDeliveryLocationDialog,
+            cuceiCenter = uiState.value.cuceiCenterOnMap!!,
+            cuceiBounds = uiState.value.cuceiAreaBoundsOnMap!!,
+            currentLocation = uiState.value.currentDeliveryLocation,
+            currentUserLocation = uiState.value.userLocation,
             onIntent = viewModel::onIntent,
-            onAfterItemClick = { showDeliveryLocationBottomSheet = false },
-            onDismissRequest = { showDeliveryLocationBottomSheet = false }
+            onDismiss = { showDeliveryLocationDialog = false }
         )
     }
 
@@ -167,8 +241,9 @@ fun ShoppingCartScreen(
         onIntent = viewModel::onIntent,
         onBackButton = onBackButton,
         onDeliveryLocationClick = {
-            if (uiState.value.shoppingCart != null) {
-                showDeliveryLocationBottomSheet = true
+            if (uiState.value.shoppingCart != null && uiState.value.shoppingCartItems.isNotEmpty()) {
+                showDeliveryLocationDialog = true
+                locationPermissionResultLauncher.launch(Manifest.permission.ACCESS_FINE_LOCATION)
             } else {
                 showEmptyShoppingCartBottomSheet = true
             }
@@ -231,7 +306,7 @@ fun ShoppingCartScreenContent(
             ) {
                 val deliveryLocationName =
                     if (uiState.currentDeliveryLocation != null)
-                        uiState.currentDeliveryLocation.name
+                        "Se selecciono una ubicacion"
                     else
                         stringResource(id = R.string.shopping_cart_empty_delivery_location)
                 val paymentMethodName =

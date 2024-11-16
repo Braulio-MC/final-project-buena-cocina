@@ -10,7 +10,7 @@ plugins {
 
 android {
     namespace = "com.bmc.buenacocina"
-    compileSdk = 34
+    compileSdk = 35
 
     defaultConfig {
         manifestPlaceholders += mapOf(
@@ -96,6 +96,10 @@ dependencies {
     implementation(libs.google.firebase.firestore.ktx)
     implementation(libs.google.firebase.functions.ktx)
     implementation(libs.google.firebase.messaging.ktx)
+    implementation(libs.google.firebase.config.ktx)
+    implementation(libs.google.playservices.maps)
+    implementation(libs.google.playservices.location)
+    implementation(libs.google.compose.maps)
     annotationProcessor(libs.androidx.room.compiler)
     ksp(libs.androidx.room.compiler)
     implementation(libs.google.dagger.hilt)

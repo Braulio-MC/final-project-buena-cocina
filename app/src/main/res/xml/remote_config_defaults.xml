@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<defaults>
+  <entry>
+    <key>cucei_area_bounds_on_gmaps</key>
+    <value>[{"name":"Rectoria","lat":20.653428913954162,"lng":-103.32570009899207},{"name":"Entrada de Marcelino G Barragan","lat":20.65446930455245,"lng":-103.32643675834048},{"name":"La oficina","lat":20.65529056995629,"lng":-103.32713945445704},{"name":"Jardin del modulo G","lat":20.655944874730544,"lng":-103.3274816255733},{"name":"Modulo H","lat":20.656148772637913,"lng":-103.32654861786573},{"name":"Modulo N","lat":20.656854319313663,"lng":-103.32657015417972},{"name":"Auditorio del modulo Z","lat":20.656725062796887,"lng":-103.32787202769046},{"name":"Salones del modulo Z2","lat":20.65733683032782,"lng":-103.32792921728013},{"name":"Modulo Z2","lat":20.657583174999818,"lng":-103.32782880140857},{"name":"Ciudad batallas","lat":20.65778083576704,"lng":-103.32722880804594},{"name":"Edificio X","lat":20.65833304240281,"lng":-103.32728047333735},{"name":"Modulo V1","lat":20.658467271447154,"lng":-103.32591067280336},{"name":"Jardin de las matematicas","lat":20.658218008333726,"lng":-103.32586580679963},{"name":"Laboratorio de ingenierias","lat":20.658245066623824,"lng":-103.32445614866133},{"name":"Entrada de coches de Revolucion","lat":20.65911693830482,"lng":-103.32450510529897},{"name":"Entrada de personas de Revolucion","lat":20.65908682151506,"lng":-103.32421140342628},{"name":"Estacionamiento de Olimpica punto 1","lat":20.656364557996245,"lng":-103.3240552297896},{"name":"Estacionamiento de Olimpica punto 2","lat":20.655894213938506,"lng":-103.32476291890815},{"name":"Estacionamiento de Olimpica punto 3","lat":20.654835934530826,"lng":-103.32483897895038},{"name":"Entrada de Olimpica","lat":20.653940978666352,"lng":-103.32462805274092}]</value>
+  </entry>
+  <entry>
+    <key>cucei_center_on_gmaps</key>
+    <value>{"name":"Centro de CUCEI (aproximado)","lat":20.65719015974805,"lng":-103.32499909276574}</value>
+  </entry>
+</defaults>

@@ -1,8 +1,13 @@
 package com.bmc.buenacocina.ui
 
+import android.Manifest
+import android.app.Activity
+import android.content.Intent
 import android.content.pm.PackageManager
+import android.net.Uri
 import android.os.Build
 import android.os.Bundle
+import android.provider.Settings
 import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -100,11 +105,11 @@ class MainActivity : ComponentActivity() {
     private fun requestNotificationPermission() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             val hasPermission = checkSelfPermission(
-                android.Manifest.permission.POST_NOTIFICATIONS
+                Manifest.permission.POST_NOTIFICATIONS
             ) == PackageManager.PERMISSION_GRANTED
             if (!hasPermission) {
                 requestPermissions(
-                    arrayOf(android.Manifest.permission.POST_NOTIFICATIONS),
+                    arrayOf(Manifest.permission.POST_NOTIFICATIONS),
                     0
                 )
             }
@@ -121,7 +126,7 @@ class MainActivity : ComponentActivity() {
                         ss.setKeepOnScreenCondition { false }
                     },
                     onFailure = { e ->
-                        Log.e("MainActivity", "Error: ${e.message}")
+                        Log.e("MainActivity", "Error on connectUser with credentials: ${e.message}")
                         ss.setKeepOnScreenCondition { false }
                     }
                 )
@@ -145,7 +150,7 @@ class MainActivity : ComponentActivity() {
                                     ss.setKeepOnScreenCondition { false }
                                     Log.e(
                                         "MainActivity",
-                                        "Error: ${
+                                        "Error on request token: ${
                                             resultToken.error.asUiText().asString(this@MainActivity)
                                         }"
                                     )
@@ -229,4 +234,11 @@ class MainActivity : ComponentActivity() {
             )
         }
     }
+}
+
+fun Activity.openAppSettings() {
+    Intent(
+        Settings.ACTION_APPLICATION_DETAILS_SETTINGS,
+        Uri.fromParts("package", packageName, null)
+    ).also(::startActivity)
 }

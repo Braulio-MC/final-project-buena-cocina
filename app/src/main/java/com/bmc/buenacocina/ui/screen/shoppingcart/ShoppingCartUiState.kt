@@ -1,10 +1,10 @@
 package com.bmc.buenacocina.ui.screen.shoppingcart
 
 import com.bmc.buenacocina.domain.UiText
-import com.bmc.buenacocina.domain.model.LocationDomain
 import com.bmc.buenacocina.domain.model.PaymentMethodDomain
 import com.bmc.buenacocina.domain.model.ShoppingCartDomain
 import com.bmc.buenacocina.domain.model.ShoppingCartItemDomain
+import com.google.android.gms.maps.model.LatLng
 import java.math.BigDecimal
 
 data class ShoppingCartUiState(
@@ -16,10 +16,13 @@ data class ShoppingCartUiState(
     val shoppingCartItems: List<ShoppingCartItemDomain> = emptyList(),
     val shoppingCartItemsError: UiText? = null,
     val total: CartTotalUiState = CartTotalUiState(),
-    val currentDeliveryLocation: LocationDomain? = null,
+    val currentDeliveryLocation: LatLng? = null,
     val currentDeliveryLocationError: UiText? = null,
     val currentPaymentMethod: PaymentMethodDomain? = null,
     val currentPaymentMethodError: UiText? = null,
+    val cuceiCenterOnMap: Pair<String, LatLng>? = null,
+    val cuceiAreaBoundsOnMap: List<Pair<String, LatLng>>? = null,
+    val userLocation: LatLng? = null
 ) {
     data class CartTotalUiState(
         val subTotal: BigDecimal = BigDecimal.ZERO,

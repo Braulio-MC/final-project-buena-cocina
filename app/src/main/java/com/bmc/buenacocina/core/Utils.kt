@@ -28,6 +28,7 @@ import androidx.compose.ui.text.style.TextIndent
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.IntSize
 import com.bmc.buenacocina.R
+import com.google.android.gms.maps.model.LatLng
 import com.google.firebase.Timestamp
 import java.time.Instant
 import java.time.LocalDate
@@ -38,6 +39,23 @@ import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 import java.time.temporal.ChronoUnit
 import java.util.Locale
+
+fun isPointInPolygon(point: LatLng, polygon: List<LatLng>): Boolean {
+    var intersects = false
+    for (i in polygon.indices) {
+        val a = polygon[i]
+        val j = (i + 1) % polygon.size
+        val b = polygon[j]
+        if ((a.longitude > point.longitude) != (b.longitude > point.longitude)) {
+            val slope = (b.latitude - a.latitude) / (b.longitude - a.longitude)
+            val intersectLat = slope * (point.longitude - a.longitude) + a.latitude
+            if (point.latitude < intersectLat) {
+                intersects = !intersects
+            }
+        }
+    }
+    return intersects
+}
 
 fun getOrderStatusColor(status: String): Int {
     return when (status) {

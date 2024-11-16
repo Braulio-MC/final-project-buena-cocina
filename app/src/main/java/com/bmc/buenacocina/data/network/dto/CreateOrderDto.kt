@@ -1,19 +1,16 @@
 package com.bmc.buenacocina.data.network.dto
 
+import com.google.firebase.firestore.GeoPoint
+
 data class CreateOrderDto (
     val status: String,
     val rated: Boolean,
     val user: CreateOrderUserDto,
-    val deliveryLocation: CreateOrderDeliveryLocationDto,
+    val deliveryLocation: GeoPoint,
     val store: CreateOrderStoreDto,
     val paymentMethod: CreateOrderPaymentMethodDto,
 ) {
     data class CreateOrderUserDto(
-        val id: String,
-        val name: String
-    )
-
-    data class CreateOrderDeliveryLocationDto(
         val id: String,
         val name: String
     )

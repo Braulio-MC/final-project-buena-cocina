@@ -1,6 +1,5 @@
 package com.bmc.buenacocina.core
 
-const val LOCATION_COLLECTION_NAME = "delivery-locations"
 const val PAYMENT_METHOD_COLLECTION_NAME = "payment-types"
 const val PRODUCT_FAVORITE_COLLECTION_NAME = "product-favorites"
 const val STORE_FAVORITE_COLLECTION_NAME = "store-favorites"
@@ -43,3 +42,9 @@ const val ORDER_STATUS_ON_WAY_NAME = "En camino"
 const val ORDER_STATUS_DELIVERED_NAME = "Entregado"
 const val ORDER_STATUS_ERROR_NAME = "Error"
 const val ORDER_STATUS_UNASSIGNED_NAME = ""
+const val CUCEI_CENTER_ON_GMAPS_NAME="cucei_center_on_gmaps"
+const val DEFAULT_CUCEI_CENTER_ON_GMAPS_NAME="Default center"
+const val DEFAULT_LATITUDE_CUCEI_CENTER_ON_GMAPS=20.65719015974805
+const val DEFAULT_LONGITUDE_CUCEI_CENTER_ON_GMAPS=-103.32499909276574
+const val CUCEI_AREA_BOUNDS_ON_GMAPS_NAME="cucei_area_bounds_on_gmaps"
+const val LOCATION_RETRIEVE_INTERVAL_IN_MILLIS = 3000L

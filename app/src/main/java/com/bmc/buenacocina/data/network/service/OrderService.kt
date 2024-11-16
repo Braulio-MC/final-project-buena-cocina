@@ -32,10 +32,7 @@ class OrderService @Inject constructor(
                 "id" to dto.user.id,
                 "name" to dto.user.name
             ),
-            "deliveryLocation" to hashMapOf(
-                "id" to dto.deliveryLocation.id,
-                "name" to dto.deliveryLocation.name
-            ),
+            "deliveryLocation" to dto.deliveryLocation,
             "store" to hashMapOf(
                 "id" to dto.store.id,
                 "ownerId" to dto.store.ownerId,

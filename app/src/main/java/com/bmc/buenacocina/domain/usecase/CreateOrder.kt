@@ -7,6 +7,7 @@ import com.bmc.buenacocina.data.network.dto.CreateOrderLineDto
 import com.bmc.buenacocina.domain.model.ShoppingCartItemDomain
 import com.bmc.buenacocina.domain.repository.OrderRepository
 import com.bmc.buenacocina.domain.repository.ShoppingCartRepository
+import com.google.firebase.firestore.GeoPoint
 import javax.inject.Inject
 
 class CreateOrder @Inject constructor(
@@ -16,8 +17,8 @@ class CreateOrder @Inject constructor(
     operator fun invoke(
         userId: String,
         userName: String,
-        deliveryLocationId: String,
-        deliveryLocationName: String,
+        deliveryLocationLatitude: Double,
+        deliveryLocationLongitude: Double,
         storeId: String,
         storeOwnerId: String,
         storeName: String,
@@ -28,11 +29,11 @@ class CreateOrder @Inject constructor(
         onSuccess: () -> Unit,
         onFailure: (Exception) -> Unit
     ) {
+        val deliveryLocation = GeoPoint(deliveryLocationLatitude, deliveryLocationLongitude)
         val orderDto = makeCreateOrderDto(
             userId = userId,
             userName = userName,
-            deliveryLocationId = deliveryLocationId,
-            deliveryLocationName = deliveryLocationName,
+            deliveryLocation = deliveryLocation,
             storeId = storeId,
             storeOwnerId = storeOwnerId,
             storeName = storeName,
@@ -65,8 +66,7 @@ class CreateOrder @Inject constructor(
     private fun makeCreateOrderDto(
         userId: String,
         userName: String,
-        deliveryLocationId: String,
-        deliveryLocationName: String,
+        deliveryLocation: GeoPoint,
         storeId: String,
         storeOwnerId: String,
         storeName: String,
@@ -80,10 +80,7 @@ class CreateOrder @Inject constructor(
                 id = userId,
                 name = userName
             ),
-            deliveryLocation = CreateOrderDto.CreateOrderDeliveryLocationDto(
-                id = deliveryLocationId,
-                name = deliveryLocationName
-            ),
+            deliveryLocation = deliveryLocation,
             store = CreateOrderDto.CreateOrderStoreDto(
                 id = storeId,
                 ownerId = storeOwnerId,

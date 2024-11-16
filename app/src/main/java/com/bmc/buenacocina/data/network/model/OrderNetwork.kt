@@ -2,6 +2,7 @@ package com.bmc.buenacocina.data.network.model
 
 import com.google.firebase.Timestamp
 import com.google.firebase.firestore.DocumentId
+import com.google.firebase.firestore.GeoPoint
 import com.google.firebase.firestore.ServerTimestamp
 
 data class OrderNetwork(
@@ -10,7 +11,7 @@ data class OrderNetwork(
     val status: String = "",
     val rated: Boolean = false,
     val user: OrderUserNetwork = OrderUserNetwork(),
-    val deliveryLocation: OrderDeliveryLocationNetwork = OrderDeliveryLocationNetwork(),
+    val deliveryLocation: GeoPoint? = null,
     val store: OrderStoreNetwork = OrderStoreNetwork(),
     val paymentMethod: OrderPaymentMethodNetwork = OrderPaymentMethodNetwork(),
     @ServerTimestamp
@@ -20,11 +21,6 @@ data class OrderNetwork(
     val paginationKey: String = ""
 ) {
     data class OrderUserNetwork(
-        val id: String = "",
-        val name: String = ""
-    )
-
-    data class OrderDeliveryLocationNetwork(
         val id: String = "",
         val name: String = ""
     )

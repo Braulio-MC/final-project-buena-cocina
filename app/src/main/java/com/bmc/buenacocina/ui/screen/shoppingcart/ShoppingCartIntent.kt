@@ -1,11 +1,11 @@
 package com.bmc.buenacocina.ui.screen.shoppingcart
 
-import com.bmc.buenacocina.domain.model.LocationDomain
 import com.bmc.buenacocina.domain.model.PaymentMethodDomain
+import com.google.android.gms.maps.model.LatLng
 import java.math.BigInteger
 
 sealed class ShoppingCartIntent {
-    data class UpdateCurrentDeliveryLocation(val deliveryLocation: LocationDomain) :
+    data class UpdateCurrentDeliveryLocation(val deliveryLocation: LatLng) :
         ShoppingCartIntent()
 
     data class UpdateCurrentPaymentMethod(val paymentMethod: PaymentMethodDomain) :

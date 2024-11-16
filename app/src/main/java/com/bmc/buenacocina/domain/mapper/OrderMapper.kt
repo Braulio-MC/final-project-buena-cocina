@@ -14,10 +14,7 @@ object OrderMapper {
                 id = network.user.id,
                 name = network.user.name
             ),
-            deliveryLocation = OrderDomain.OrderDeliveryLocationDomain(
-                id = network.deliveryLocation.id,
-                name = network.deliveryLocation.name
-            ),
+            deliveryLocation = network.deliveryLocation,
             store = OrderDomain.OrderStoreDomain(
                 id = network.store.id,
                 ownerId = network.store.ownerId,

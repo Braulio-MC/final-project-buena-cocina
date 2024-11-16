@@ -1,6 +1,10 @@
 package com.bmc.buenacocina.ui.screen.detailed.order
 
+import android.Manifest
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.ScrollState
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.IntrinsicSize
@@ -41,8 +45,13 @@ import androidx.compose.material3.TopAppBarState
 import androidx.compose.material3.rememberTopAppBarState
 import androidx.compose.material3.windowsizeclass.WindowSizeClass
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
@@ -56,10 +65,20 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.core.app.ActivityCompat.shouldShowRequestPermissionRationale
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
+import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.bmc.buenacocina.core.DateUtils
 import com.bmc.buenacocina.core.OrderStatus
+import com.bmc.buenacocina.domain.LocationPermissionTextProvider
+import com.bmc.buenacocina.domain.getActivity
+import com.bmc.buenacocina.domain.hasLocationPermissionFlow
+import com.bmc.buenacocina.domain.mapper.asLatLng
+import com.bmc.buenacocina.ui.openAppSettings
+import com.bmc.buenacocina.ui.screen.common.LocationPermissionDialog
 import com.bmc.buenacocina.ui.viewmodel.DetailedOrderViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -80,10 +99,25 @@ fun DetailedOrderScreen(
     onBackButton: () -> Unit
 ) {
     val uiState = viewModel.uiState.collectAsStateWithLifecycle()
+    val locationPermissionQueue by viewModel.visiblePermissionDialogQueue.collectAsStateWithLifecycle()
     val currentContext = LocalContext.current
     val snackbarHostState = remember {
         SnackbarHostState()
     }
+    var showOrderLocationDialog by rememberSaveable {
+        mutableStateOf(false)
+    }
+    val locationPermissionResultLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.RequestPermission(),
+        onResult = { isGranted ->
+            viewModel.onPermissionResult(
+                permission = Manifest.permission.ACCESS_FINE_LOCATION,
+                isGranted = isGranted
+            )
+        }
+    )
+    val lifecycleOwner = LocalLifecycleOwner.current
+    val isForeground = remember { mutableStateOf(false) }
 
     LaunchedEffect(key1 = currentContext) {
         viewModel.events.collect { event ->
@@ -102,6 +136,67 @@ fun DetailedOrderScreen(
         }
     }
 
+    DisposableEffect(lifecycleOwner) {
+        val observer = LifecycleEventObserver { _, event ->
+            isForeground.value = event == Lifecycle.Event.ON_RESUME
+        }
+        lifecycleOwner.lifecycle.addObserver(observer)
+        onDispose { lifecycleOwner.lifecycle.removeObserver(observer) }
+    }
+
+    LaunchedEffect(isForeground.value, showOrderLocationDialog) {
+        if (isForeground.value && showOrderLocationDialog) {
+            currentContext.hasLocationPermissionFlow().collect { hasLocationPermission ->
+                if (hasLocationPermission && showOrderLocationDialog) {
+                    viewModel.startLocationUpdates()
+                } else {
+                    viewModel.stopLocationUpdates()
+                }
+            }
+        } else {
+            viewModel.stopLocationUpdates()
+        }
+    }
+
+    locationPermissionQueue
+        .reversed()
+        .forEach { permission ->
+            LocationPermissionDialog(
+                permissionTextProvider = when (permission) {
+                    Manifest.permission.ACCESS_FINE_LOCATION -> LocationPermissionTextProvider()
+                    else -> return@forEach
+                },
+                isPermanentlyDeclined = if (currentContext.getActivity() != null) {
+                    !shouldShowRequestPermissionRationale(
+                        currentContext.getActivity()!!,
+                        permission
+                    )
+                } else false,
+                onDismiss = viewModel::dismissPermissionDialog,
+                onOkClick = {
+                    viewModel.dismissPermissionDialog()
+                    locationPermissionResultLauncher.launch(permission)
+                },
+                onGoToAppSettingsClick = if (currentContext.getActivity() != null) {
+                    { currentContext.getActivity()!!.openAppSettings() }
+                } else {
+                    {}
+                },
+            )
+        }
+
+    if (uiState.value.cuceiCenterOnMap != null && uiState.value.cuceiAreaBoundsOnMap != null) {
+        DetailedOrderLocationDialog(
+            isDialogOpen = showOrderLocationDialog,
+            isLoadingUserLocation = uiState.value.isLoadingUserLocation,
+            cuceiCenter = uiState.value.cuceiCenterOnMap!!,
+            cuceiBounds = uiState.value.cuceiAreaBoundsOnMap!!,
+            orderLocation = uiState.value.order?.deliveryLocation?.asLatLng(),
+            currentUserLocation = uiState.value.userLocation,
+            onDismiss = { showOrderLocationDialog = false }
+        )
+    }
+
     DetailedOrderScreenContent(
         windowSizeClass = windowSizeClass,
         uiState = uiState.value,
@@ -110,6 +205,10 @@ fun DetailedOrderScreen(
         scrollBehavior = scrollBehavior,
         onIntent = viewModel::onIntent,
         onRateOrderButton = { onOrderRating(orderId) },
+        onShowLocationOnMapButton = {
+            showOrderLocationDialog = true
+            locationPermissionResultLauncher.launch(Manifest.permission.ACCESS_FINE_LOCATION)
+        },
         onBackButton = onBackButton
     )
 }
@@ -124,6 +223,7 @@ fun DetailedOrderScreenContent(
     scrollBehavior: TopAppBarScrollBehavior,
     onIntent: (DetailedOrderIntent) -> Unit,
     onRateOrderButton: () -> Unit,
+    onShowLocationOnMapButton: () -> Unit,
     onBackButton: () -> Unit
 ) {
     Scaffold(
@@ -331,18 +431,33 @@ fun DetailedOrderScreenContent(
                                     modifier = Modifier
                                         .weight(1f)
                                 )
-                                Text(
-                                    text = "$${uiState.orderTotal}",
-                                    textAlign = TextAlign.End,
-                                    color = Color.DarkGray,
-                                    fontSize = 17.sp,
-                                    fontWeight = FontWeight.W500,
-                                    maxLines = 1,
-                                    overflow = TextOverflow.Ellipsis,
-                                    modifier = Modifier
-                                        .weight(2f)
-                                        .padding(end = 5.dp)
-                                )
+                                if (uiState.isCalculatingOrderTotal) {
+                                    Text(
+                                        text = "Cargando...",
+                                        textAlign = TextAlign.End,
+                                        color = Color.DarkGray,
+                                        fontSize = 16.sp,
+                                        fontWeight = FontWeight.Light,
+                                        maxLines = 1,
+                                        overflow = TextOverflow.Ellipsis,
+                                        modifier = Modifier
+                                            .weight(2f)
+                                            .padding(end = 5.dp)
+                                    )
+                                } else {
+                                    Text(
+                                        text = "$${uiState.orderTotal}",
+                                        textAlign = TextAlign.End,
+                                        color = Color.DarkGray,
+                                        fontSize = 17.sp,
+                                        fontWeight = FontWeight.W500,
+                                        maxLines = 1,
+                                        overflow = TextOverflow.Ellipsis,
+                                        modifier = Modifier
+                                            .weight(2f)
+                                            .padding(end = 5.dp)
+                                    )
+                                }
                             }
                             HorizontalDivider(
                                 thickness = 1.dp,
@@ -367,7 +482,7 @@ fun DetailedOrderScreenContent(
                                         .weight(1f)
                                 )
                                 Text(
-                                    text = uiState.order.deliveryLocation.name,
+                                    text = "Ver en el mapa",
                                     textAlign = TextAlign.End,
                                     color = Color.DarkGray,
                                     fontSize = 17.sp,
@@ -377,6 +492,7 @@ fun DetailedOrderScreenContent(
                                     modifier = Modifier
                                         .weight(2f)
                                         .padding(end = 5.dp)
+                                        .clickable { onShowLocationOnMapButton() }
                                 )
                             }
                             HorizontalDivider(

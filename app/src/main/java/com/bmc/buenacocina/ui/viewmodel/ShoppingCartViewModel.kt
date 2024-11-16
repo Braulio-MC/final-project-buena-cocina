@@ -1,16 +1,22 @@
 package com.bmc.buenacocina.ui.viewmodel
 
+import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.paging.cachedIn
+import com.bmc.buenacocina.core.LOCATION_RETRIEVE_INTERVAL_IN_MILLIS
 import com.bmc.buenacocina.core.NetworkStatus
 import com.bmc.buenacocina.core.SHARING_COROUTINE_TIMEOUT_IN_SEC
+import com.bmc.buenacocina.data.network.service.LocationService
 import com.bmc.buenacocina.domain.Result
+import com.bmc.buenacocina.domain.isGpsOrNetworkEnabledFlow
 import com.bmc.buenacocina.domain.mapper.asFormErrorUiText
+import com.bmc.buenacocina.domain.mapper.asLatLng
 import com.bmc.buenacocina.domain.model.ShoppingCartDomain
 import com.bmc.buenacocina.domain.model.ShoppingCartItemDomain
 import com.bmc.buenacocina.domain.repository.ConnectivityRepository
 import com.bmc.buenacocina.domain.repository.PaymentMethodRepository
+import com.bmc.buenacocina.domain.repository.RemoteConfigRepository
 import com.bmc.buenacocina.domain.repository.ShoppingCartItemRepository
 import com.bmc.buenacocina.domain.repository.ShoppingCartRepository
 import com.bmc.buenacocina.domain.repository.UserRepository
@@ -25,12 +31,18 @@ import com.bmc.buenacocina.ui.screen.shoppingcart.ShoppingCartIntent
 import com.bmc.buenacocina.ui.screen.shoppingcart.ShoppingCartUiState
 import com.google.firebase.firestore.Query
 import dagger.hilt.android.lifecycle.HiltViewModel
+import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOf
@@ -49,6 +61,7 @@ import javax.inject.Inject
 
 @HiltViewModel
 class ShoppingCartViewModel @Inject constructor(
+    @ApplicationContext private val context: Context,
     private val validateCart: ValidateShoppingCart,
     private val validateItems: ValidateShoppingCartItems,
     private val validateLocation: ValidateShoppingCartLocation,
@@ -59,9 +72,14 @@ class ShoppingCartViewModel @Inject constructor(
     private val shoppingCartRepository: ShoppingCartRepository,
     private val shoppingCartItemRepository: ShoppingCartItemRepository,
     private val userRepository: UserRepository,
+    private val remoteConfigRepository: RemoteConfigRepository,
+    private val locationService: LocationService,
     paymentMethodRepository: PaymentMethodRepository,
     connectivityRepository: ConnectivityRepository
 ) : ViewModel() {
+    private var _locationJob: Job? = null
+    private val _visiblePermissionDialogQueue = MutableStateFlow<List<String>>(emptyList())
+    val visiblePermissionDialogQueue: StateFlow<List<String>> = _visiblePermissionDialogQueue
     @OptIn(ExperimentalCoroutinesApi::class)
     private val _getShoppingCart: Flow<ShoppingCartDomain?> = flow {
         emit(userRepository.getUserId())
@@ -111,6 +129,20 @@ class ShoppingCartViewModel @Inject constructor(
                                 calculate(cartItems)
                             }
                             .launchIn(viewModelScope)
+                    }
+                }
+                .launchIn(viewModelScope)
+            remoteConfigRepository.cuceiCenterOnMap
+                .onEach { pair ->
+                    _uiState.update { currentState ->
+                        currentState.copy(cuceiCenterOnMap = pair)
+                    }
+                }
+                .launchIn(viewModelScope)
+            remoteConfigRepository.cuceiAreaBoundsOnMap
+                .onEach { pairList ->
+                    _uiState.update { currentState ->
+                        currentState.copy(cuceiAreaBoundsOnMap = pairList)
                     }
                 }
                 .launchIn(viewModelScope)
@@ -244,8 +276,10 @@ class ShoppingCartViewModel @Inject constructor(
                         try {
                             val userId = result.data.getId()!!
                             val userName = result.data.name!!
-                            val deliveryLocationId = _uiState.value.currentDeliveryLocation!!.id
-                            val deliveryLocationName = _uiState.value.currentDeliveryLocation!!.name
+                            val deliveryLocationLat =
+                                _uiState.value.currentDeliveryLocation!!.latitude
+                            val deliveryLocationLng =
+                                _uiState.value.currentDeliveryLocation!!.longitude
                             val storeId = _uiState.value.shoppingCart!!.store.id
                             val storeOwnerId = _uiState.value.shoppingCart!!.store.ownerId
                             val storeName = _uiState.value.shoppingCart!!.store.name
@@ -257,8 +291,8 @@ class ShoppingCartViewModel @Inject constructor(
                             createOrder(
                                 userId = userId,
                                 userName = userName,
-                                deliveryLocationId = deliveryLocationId,
-                                deliveryLocationName = deliveryLocationName,
+                                deliveryLocationLatitude = deliveryLocationLat,
+                                deliveryLocationLongitude = deliveryLocationLng,
                                 storeId = storeId,
                                 storeOwnerId = storeOwnerId,
                                 storeName = storeName,
@@ -271,7 +305,6 @@ class ShoppingCartViewModel @Inject constructor(
                                         storeId = storeId,
                                         storeName = storeName,
                                         userName = userName,
-                                        locationName = deliveryLocationName,
                                         itemCount = itemCount,
                                         onSuccess = {
                                             processOrderSuccess()
@@ -315,6 +348,52 @@ class ShoppingCartViewModel @Inject constructor(
                 currentState.copy(isWaitingForOrderResult = false)
             }
             _events.send(ShoppingCartViewModelEvent.OrderFailed(e))
+        }
+    }
+
+    fun dismissPermissionDialog() {
+        if (_visiblePermissionDialogQueue.value.isNotEmpty()) {
+            _visiblePermissionDialogQueue.update { currentState ->
+                currentState.drop(1)
+            }
+        }
+    }
+
+    fun onPermissionResult(permission: String, isGranted: Boolean) {
+        if (!isGranted && !_visiblePermissionDialogQueue.value.contains(permission)) {
+            _visiblePermissionDialogQueue.update { currentState ->
+                currentState + permission
+            }
+        }
+    }
+
+    fun startLocationUpdates() {
+        if (_locationJob == null || _locationJob?.isActive == false) {
+            _locationJob = viewModelScope.launch {
+                combine(
+                    locationService.getLocationUpdates(LOCATION_RETRIEVE_INTERVAL_IN_MILLIS)
+                        .distinctUntilChanged()
+                        .filterNotNull()
+                        .map { location -> location.asLatLng() }
+                        .catch { e -> e.printStackTrace() },
+                    context.isGpsOrNetworkEnabledFlow()
+                        .distinctUntilChanged()
+                ) { location, isLocationEnabled ->
+                    if (isLocationEnabled) location else null
+                }.onEach { location ->
+                    _uiState.update { currentState ->
+                        currentState.copy(userLocation = location)
+                    }
+                }.launchIn(viewModelScope)
+            }
+        }
+    }
+
+    fun stopLocationUpdates() {
+        _locationJob?.cancel()
+        _locationJob = null
+        _uiState.update { currentState ->
+            currentState.copy(userLocation = null)
         }
     }
 

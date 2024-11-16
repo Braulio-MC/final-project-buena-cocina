@@ -52,7 +52,7 @@ fun OrderHistoryItem(
     } else {
         "pendiente"
     }
-    val createdAt = order.createdAt?.let {
+    val updatedAt = order.updatedAt?.let {
         DateUtils.localDateTimeToString(it)
     } ?: "No se pudo obtener"
 
@@ -112,7 +112,7 @@ fun OrderHistoryItem(
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
                     Text(
-                        text = "Creado",
+                        text = "Actualizacion",
                         textAlign = TextAlign.End,
                         fontSize = 14.sp,
                         color = Color.Gray,
@@ -124,7 +124,7 @@ fun OrderHistoryItem(
                             .weight(1f)
                     )
                     Text(
-                        text = createdAt,
+                        text = updatedAt,
                         textAlign = TextAlign.End,
                         color = Color.DarkGray,
                         fontSize = 14.sp,
@@ -172,7 +172,7 @@ fun OrderHistoryItem(
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
                     Text(
-                        text = "Direccion",
+                        text = "Metodo de pago",
                         textAlign = TextAlign.End,
                         fontSize = 14.sp,
                         color = Color.Gray,
@@ -184,7 +184,7 @@ fun OrderHistoryItem(
                             .weight(1f)
                     )
                     Text(
-                        text = order.deliveryLocation.name,
+                        text = order.paymentMethod.name,
                         textAlign = TextAlign.End,
                         color = Color.DarkGray,
                         fontSize = 14.sp,

@@ -1,5 +1,6 @@
 package com.bmc.buenacocina.domain.model
 
+import com.google.firebase.firestore.GeoPoint
 import java.time.LocalDateTime
 
 data class OrderDomain(
@@ -7,18 +8,13 @@ data class OrderDomain(
     val status: String,
     val rated: Boolean,
     val user: OrderUserDomain,
-    val deliveryLocation: OrderDeliveryLocationDomain,
+    val deliveryLocation: GeoPoint?,
     val store: OrderStoreDomain,
     val paymentMethod: OrderPaymentMethodDomain,
     val createdAt: LocalDateTime?,
     val updatedAt: LocalDateTime?
 ) {
     data class OrderUserDomain(
-        val id: String,
-        val name: String
-    )
-
-    data class OrderDeliveryLocationDomain(
         val id: String,
         val name: String
     )

@@ -1,45 +1,56 @@
 package com.bmc.buenacocina.data.network.service
 
-import com.bmc.buenacocina.core.LOCATION_COLLECTION_NAME
-import com.bmc.buenacocina.data.network.model.LocationNetwork
-import com.google.firebase.firestore.FirebaseFirestore
-import com.google.firebase.firestore.Query
+import android.annotation.SuppressLint
+import android.content.Context
+import android.location.Location
+import android.os.Looper
+import com.bmc.buenacocina.domain.exception.LocationPermissionException
+import com.bmc.buenacocina.domain.hasLocationPermission
+import com.google.android.gms.location.FusedLocationProviderClient
+import com.google.android.gms.location.LocationAvailability
+import com.google.android.gms.location.LocationCallback
+import com.google.android.gms.location.LocationRequest
+import com.google.android.gms.location.LocationResult
+import com.google.android.gms.location.Priority
+import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
 import javax.inject.Inject
 
 class LocationService @Inject constructor(
-    private val firestore: FirebaseFirestore
+    @ApplicationContext private val context: Context,
+    private val client: FusedLocationProviderClient
 ) {
-    fun get(id: String): Flow<LocationNetwork?> = callbackFlow {
-        val docRef = firestore.collection(LOCATION_COLLECTION_NAME).document(id)
-        val listener = docRef.addSnapshotListener { snapshot, e ->
-            if (e != null) {
-                close(e)
-            } else if (snapshot != null && snapshot.exists()) {
-                val location = snapshot.toObject(LocationNetwork::class.java)
-                trySend(location)
-            } else {
-                trySend(null)
-            }
+    @SuppressLint("MissingPermission")
+    fun getLocationUpdates(interval: Long): Flow<Location?> = callbackFlow {
+        if (!context.hasLocationPermission()) {
+            close(LocationPermissionException("Missing location permission"))
         }
-        awaitClose { listener.remove() }
-    }
+        val request = LocationRequest
+            .Builder(Priority.PRIORITY_HIGH_ACCURACY, interval)
+            .setWaitForAccurateLocation(true)
+            .setMinUpdateIntervalMillis(interval)
+            .setMaxUpdateDelayMillis(interval * 2)
+            .build()
+        val locationCallback = object : LocationCallback() {
+            override fun onLocationResult(result: LocationResult) {
+                super.onLocationResult(result)
+                trySend(result.lastLocation)
+            }
 
-    fun get(query: (Query) -> Query = { it }): Flow<List<LocationNetwork>> = callbackFlow {
-        val ref = firestore.collection(LOCATION_COLLECTION_NAME)
-        val q = query(ref)
-        val listener = q.addSnapshotListener { snapshot, e ->
-            if (e != null) {
-                close(e)
-            } else if (snapshot != null && !snapshot.isEmpty) {
-                val locations = snapshot.toObjects(LocationNetwork::class.java)
-                trySend(locations)
-            } else {
-                trySend(emptyList())
+            override fun onLocationAvailability(availability: LocationAvailability) {
+                super.onLocationAvailability(availability)
+                if (!availability.isLocationAvailable) {
+                    trySend(null)
+                }
             }
         }
-        awaitClose { listener.remove() }
+        client.requestLocationUpdates(
+            request,
+            locationCallback,
+            Looper.getMainLooper()
+        ).addOnFailureListener { e -> close(e) }
+        awaitClose { client.removeLocationUpdates(locationCallback) }
     }
 }
