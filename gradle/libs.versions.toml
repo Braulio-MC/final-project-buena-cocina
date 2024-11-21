@@ -36,7 +36,7 @@ googleServices = "4.4.2"
 securityCrypto = "1.1.0-alpha06"
 googlePlayServicesMaps = "19.0.0"
 googlePlayServicesLocation = "21.3.0"
-googleMapsCompose = "6.2.0"
+googleMapsCompose = "6.2.1"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }

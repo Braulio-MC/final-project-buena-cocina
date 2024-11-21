@@ -46,8 +46,8 @@ fun DetailedOrderLocationDialog(
         ) {
             Box(
                 modifier = Modifier
-                .fillMaxSize()
-                .padding(vertical = 16.dp)
+                    .fillMaxSize()
+                    .padding(vertical = 16.dp)
             ) {
                 GoogleMap(
                     modifier = Modifier

@@ -1,5 +1,6 @@
 package com.bmc.buenacocina.data.network.service
 
+import android.util.Log
 import com.bmc.buenacocina.core.USER_COLLECTION_NAME
 import com.bmc.buenacocina.core.USER_SUB_COLLECTION_TOKEN
 import com.bmc.buenacocina.domain.Result
@@ -15,34 +16,70 @@ class TokenService @Inject constructor(
     private val messaging: FirebaseMessaging
 ) {
     suspend fun create(
-        token: String,
+        token: String? = null,
         onSuccess: (Any?) -> Unit,
         onFailure: (Exception) -> Unit
     ) {
         when (val result = userService.getUserId()) {
             is Result.Error -> {
-
+                Log.e("TokenService", "Error on get user id: ${result.error}")
             }
 
             is Result.Success -> {
-                val fParams = hashMapOf(
-                    "userId" to result.data,
-                    "token" to token
-                )
-                functions
-                    .getHttpsCallable("pushNotification-create")
-                    .call(fParams)
-                    .addOnSuccessListener { response ->
-                        onSuccess(response.getData())
+                if (token == null) {
+                    messaging.token.addOnSuccessListener { tokenListener ->
+                        this.exists(
+                            userId = result.data,
+                            token = tokenListener,
+                            onSuccess = { exists ->
+                                if (!exists) {
+                                    val fParams = hashMapOf(
+                                        "userId" to result.data,
+                                        "token" to tokenListener
+                                    )
+                                    functions
+                                        .getHttpsCallable("pushNotification-create")
+                                        .call(fParams)
+                                        .addOnSuccessListener { response ->
+                                            onSuccess(response.getData())
+                                        }
+                                        .addOnFailureListener { e ->
+                                            onFailure(e)
+                                        }
+                                }
+                            },
+                            onFailure = onFailure
+                        )
                     }
-                    .addOnFailureListener { e ->
-                        onFailure(e)
-                    }
+                } else {
+                    this.exists(
+                        userId = result.data,
+                        token = token,
+                        onSuccess = { exists ->
+                            if (!exists) {
+                                val fParams = hashMapOf(
+                                    "userId" to result.data,
+                                    "token" to token
+                                )
+                                functions
+                                    .getHttpsCallable("pushNotification-create")
+                                    .call(fParams)
+                                    .addOnSuccessListener { response ->
+                                        onSuccess(response.getData())
+                                    }
+                                    .addOnFailureListener { e ->
+                                        onFailure(e)
+                                    }
+                            }
+                        },
+                        onFailure = onFailure
+                    )
+                }
             }
         }
     }
 
-    fun exists(
+    private fun exists(
         userId: String?,
         token: String,
         onSuccess: (Boolean) -> Unit,

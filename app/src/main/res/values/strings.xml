@@ -9,6 +9,8 @@
     <!-- Api server -->
     <string name="base_api_server_url">http://10.0.2.2:5001</string>
 
+    <!-- Google Maps api -->
+
     <!-- Navigation -->
     <string name="navigation_home">Inicio</string>
     <string name="navigation_shopping_cart">Carrito</string>

@@ -15,7 +15,6 @@ import com.bmc.buenacocina.R
 import com.bmc.buenacocina.core.NetworkStatus
 import com.bmc.buenacocina.core.SHARING_COROUTINE_TIMEOUT_IN_SEC
 import com.bmc.buenacocina.data.network.model.GetStreamUserCredentials
-import com.bmc.buenacocina.data.preferences.PreferencesService
 import com.bmc.buenacocina.domain.Result
 import com.bmc.buenacocina.domain.repository.ChatRepository
 import com.bmc.buenacocina.domain.repository.ConnectivityRepository
@@ -31,7 +30,6 @@ import javax.inject.Inject
 class LoginViewModel @Inject constructor(
     private val auth0Account: Auth0,
     private val auth0Manager: SecureCredentialsManager,
-    private val preferencesService: PreferencesService,
     private val getStreamTokenRepository: GetStreamTokenRepository,
     private val chatRepository: ChatRepository,
     connectivityRepository: ConnectivityRepository
@@ -81,14 +79,10 @@ class LoginViewModel @Inject constructor(
                                         ),
                                         token = resultToken.data
                                     )
-                                    preferencesService.saveUserCredentials(getStreamCredentials)
-                                    chatRepository.connectUser(
-                                        getStreamCredentials,
-                                        onSuccess = { },
-                                        onFailure = { e ->
-                                            Log.e("LoginViewModel", "Error: ${e.message}")
-                                        }
-                                    )
+                                    val connectR = chatRepository.connectUser(getStreamCredentials)
+                                    connectR.onFailure { e ->
+                                        Log.e("LoginViewModel", "Error: ${e.message}")
+                                    }
                                 }
                             }
                         }

@@ -7,20 +7,11 @@ class TokenRepository @Inject constructor(
     private val tokenService: TokenService
 ) {
     suspend fun create(
-        token: String,
+        token: String? = null,
         onSuccess: (Any?) -> Unit,
         onFailure: (Exception) -> Unit
     ) {
         tokenService.create(token, onSuccess, onFailure)
-    }
-
-    fun exists(
-        userId: String?,
-        token: String,
-        onSuccess: (Boolean) -> Unit,
-        onFailure: (Exception) -> Unit
-    ) {
-        tokenService.exists(userId, token, onSuccess, onFailure)
     }
 
     suspend fun remove(

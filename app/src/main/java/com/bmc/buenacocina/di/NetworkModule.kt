@@ -35,7 +35,7 @@ object NetworkModule {
         }
     }
 
-    @HeaderInterceptorOkHttpClient
+    @NetworkOkHttpClient
     @Provides
     fun provideOkHttpClient(headerInterceptorOkHttpClient: Interceptor): OkHttpClient {
         val connectionTimeout = Duration.ofSeconds(OK_HTTP_CLIENT_CONNECTION_TIMEOUT_IN_SEC)
@@ -52,7 +52,7 @@ object NetworkModule {
     @Singleton
     @Provides
     fun provideRetrofit(
-        @HeaderInterceptorOkHttpClient okHttpClient: OkHttpClient,
+        @NetworkOkHttpClient okHttpClient: OkHttpClient,
         @ApplicationContext context: Context
     ): Retrofit {
         val baseUrl = context.getString(R.string.base_api_server_url)
