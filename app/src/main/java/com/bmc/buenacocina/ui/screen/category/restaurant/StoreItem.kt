@@ -1,14 +1,12 @@
 package com.bmc.buenacocina.ui.screen.category.restaurant
 
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -31,12 +29,18 @@ import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.bmc.buenacocina.R
 import com.bmc.buenacocina.domain.model.StoreDomain
+import java.math.BigDecimal
+import java.math.RoundingMode
 
 @Composable
 fun StoreItem(
     store: StoreDomain,
     onClick: (String) -> Unit
 ) {
+    val storeRating = if (store.rating > BigDecimal.ZERO) store.rating.setScale(
+        1, RoundingMode.HALF_DOWN
+    ).toPlainString() else "N/A"
+
     Card(
         elevation = CardDefaults.cardElevation(
             defaultElevation = 5.dp
@@ -86,7 +90,7 @@ fun StoreItem(
                 )
                 Spacer(modifier = Modifier.width(5.dp))
                 Text(
-                    text = "N/A",
+                    text = storeRating,
                     fontSize = 17.sp,
                     color = Color.DarkGray,
                     fontWeight = FontWeight.Bold,

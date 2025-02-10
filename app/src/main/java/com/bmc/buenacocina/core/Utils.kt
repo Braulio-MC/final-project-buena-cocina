@@ -30,6 +30,8 @@ import androidx.compose.ui.unit.IntSize
 import com.bmc.buenacocina.R
 import com.google.android.gms.maps.model.LatLng
 import com.google.firebase.Timestamp
+import java.math.BigDecimal
+import java.math.RoundingMode
 import java.time.Instant
 import java.time.LocalDate
 import java.time.LocalDateTime
@@ -66,6 +68,18 @@ fun getOrderStatusColor(status: String): Int {
         OrderStatus.DELIVERED.status -> R.color.order_status_arrived
         OrderStatus.ERROR.status -> R.color.order_status_error
         else -> R.color.order_status_unassigned
+    }
+}
+
+fun getReviewSentimentStatusColor(status: String): Int {
+    val s = status.lowercase().replaceFirstChar { it.titlecase() }
+    return when (s) {
+        ReviewSentimentStatus.VERY_NEGATIVE.status -> R.color.review_sentiment_very_negative
+        ReviewSentimentStatus.NEGATIVE.status -> R.color.review_sentiment_negative
+        ReviewSentimentStatus.NEUTRAL.status -> R.color.review_sentiment_neutral
+        ReviewSentimentStatus.POSITIVE.status -> R.color.review_sentiment_positive
+        ReviewSentimentStatus.VERY_POSITIVE.status -> R.color.review_sentiment_very_positive
+        else -> R.color.review_sentiment_unassigned
     }
 }
 
@@ -232,6 +246,18 @@ class TimeUtils {
 
         fun localTimeToString(time: LocalTime): String {
             return time.format(DateTimeFormatter.ofPattern("HH:mm a"))
+        }
+    }
+}
+
+class FormatUtils {
+    companion object {
+        fun formatDiscountPercentage(percentage: BigDecimal): BigDecimal {
+            return if (percentage.stripTrailingZeros().scale() <= 0) {
+                percentage.setScale(0, RoundingMode.UNNECESSARY)
+            } else {
+                percentage.setScale(2, RoundingMode.HALF_DOWN)
+            }
         }
     }
 }

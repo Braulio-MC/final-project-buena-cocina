@@ -1,7 +1,9 @@
 package com.bmc.buenacocina.ui.screen.detailed.store
 
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.ScrollState
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -12,8 +14,11 @@ import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.foundation.relocation.BringIntoViewRequester
+import androidx.compose.foundation.relocation.bringIntoViewRequester
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
@@ -38,6 +43,8 @@ import androidx.compose.material3.VerticalDivider
 import androidx.compose.material3.rememberTopAppBarState
 import androidx.compose.material3.windowsizeclass.WindowSizeClass
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
@@ -49,6 +56,7 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
@@ -65,10 +73,15 @@ import coil.request.ImageRequest
 import com.bmc.buenacocina.R
 import com.bmc.buenacocina.core.NetworkStatus
 import com.bmc.buenacocina.domain.model.ProductDomain
+import com.bmc.buenacocina.domain.model.StoreReviewAnalyzedDomain
 import com.bmc.buenacocina.ui.viewmodel.DetailedStoreViewModel
 import com.bmc.buenacocina.ui.viewmodel.DetailedStoreViewModel.DetailedStoreViewModelFactory
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.launch
+import java.math.BigInteger
+import java.math.RoundingMode
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
 @Composable
 fun DetailedStoreScreen(
     windowSizeClass: WindowSizeClass,
@@ -82,43 +95,50 @@ fun DetailedStoreScreen(
     scrollState: ScrollState = rememberScrollState(),
     scrollBehavior: TopAppBarScrollBehavior = TopAppBarDefaults.pinnedScrollBehavior(topAppBarState),
     onProductClick: (String, String) -> Unit,
+    onTotalReviewsClick: (String) -> Unit,
     onBackButton: () -> Unit
 ) {
     val uiState = viewModel.uiState.collectAsStateWithLifecycle()
-    val resultState = viewModel.resultState.collectAsStateWithLifecycle()
     val products = viewModel.products.collectAsLazyPagingItems()
+    val reviews = viewModel.reviews.collectAsLazyPagingItems()
     val netState = viewModel.netState.collectAsStateWithLifecycle()
+    val bringIntoViewRequesterForStoreReviews = remember { BringIntoViewRequester() }
+    val coroutineScope = rememberCoroutineScope()
 
     DetailedStoreScreenContent(
         windowSizeClass = windowSizeClass,
         uiState = uiState.value,
-        resultState = resultState.value,
         netState = netState.value,
         products = products,
+        reviews = reviews,
+        bringIntoViewRequesterForStoreReviews = bringIntoViewRequesterForStoreReviews,
+        coroutineScope = coroutineScope,
         scrollState = scrollState,
         scrollBehavior = scrollBehavior,
         onIntent = viewModel::onIntent,
         onProductClick = onProductClick,
+        onTotalReviewsClick = onTotalReviewsClick,
         onBackButton = onBackButton
     )
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
 @Composable
 fun DetailedStoreScreenContent(
     windowSizeClass: WindowSizeClass,
     uiState: DetailedStoreUiState,
-    resultState: DetailedStoreUiResultState,
     netState: NetworkStatus,
     products: LazyPagingItems<ProductDomain>,
+    reviews: LazyPagingItems<StoreReviewAnalyzedDomain>,
+    bringIntoViewRequesterForStoreReviews: BringIntoViewRequester,
+    coroutineScope: CoroutineScope,
     scrollState: ScrollState,
     scrollBehavior: TopAppBarScrollBehavior,
     onIntent: (DetailedStoreIntent) -> Unit,
     onProductClick: (String, String) -> Unit,
+    onTotalReviewsClick: (String) -> Unit,
     onBackButton: () -> Unit
 ) {
-    val storeName = if (uiState.store != null) uiState.store.name else ""
-
     Scaffold(
         modifier = Modifier
             .nestedScroll(scrollBehavior.nestedScrollConnection),
@@ -126,7 +146,7 @@ fun DetailedStoreScreenContent(
             TopAppBar(
                 title = {
                     Text(
-                        text = storeName,
+                        text = uiState.store?.name ?: "Detalles de tienda",
                         fontWeight = FontWeight.Medium,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis
@@ -146,7 +166,7 @@ fun DetailedStoreScreenContent(
             )
         }
     ) { paddingValues ->
-        if (uiState.isLoading) {
+        if (uiState.isLoadingStore) {
             DetailedStoreShimmer(
                 modifier = Modifier
                     .padding(paddingValues)
@@ -157,6 +177,10 @@ fun DetailedStoreScreenContent(
                 val icon =
                     if (uiState.favorite != null) Icons.Filled.Favorite else Icons.Outlined.FavoriteBorder
                 val color = if (uiState.favorite != null) Color.Red else Color.Black
+                val storeRating =
+                    uiState.store.rating.setScale(1, RoundingMode.HALF_DOWN).toPlainString()
+                val totalRevs =
+                    "${uiState.store.totalReviews} ${if (uiState.store.totalReviews == BigInteger.ONE) "reseña" else "reseñas"}"
 
                 Column(
                     modifier = Modifier
@@ -179,7 +203,7 @@ fun DetailedStoreScreenContent(
                             .height(250.dp)
                     )
                     Text(
-                        text = storeName,
+                        text = uiState.store.name,
                         fontSize = 25.sp,
                         fontWeight = FontWeight.Bold,
                         color = Color.Black,
@@ -209,12 +233,17 @@ fun DetailedStoreScreenContent(
                                 modifier = Modifier
                                     .padding(5.dp)
                                     .fillMaxSize()
-                                    .weight(1f),
+                                    .weight(1f)
+                                    .clickable {
+                                        coroutineScope.launch {
+                                            bringIntoViewRequesterForStoreReviews.bringIntoView()
+                                        }
+                                    },
                                 verticalAlignment = Alignment.CenterVertically,
                                 horizontalArrangement = Arrangement.SpaceEvenly
                             ) {
                                 Text(
-                                    text = "N/A",
+                                    text = storeRating,
                                     fontSize = 25.sp,
                                     color = Color.Black,
                                     fontWeight = FontWeight.Bold,
@@ -241,12 +270,12 @@ fun DetailedStoreScreenContent(
                                 modifier = Modifier
                                     .fillMaxSize()
                                     .weight(1f),
-                                enabled = !resultState.isWaitingForFavoriteResult,
+                                enabled = !uiState.isWaitingForFavoriteResult,
                                 onClick = {
                                     onIntent(DetailedStoreIntent.ToggleFavoriteStore)
                                 }
                             ) {
-                                if (resultState.isWaitingForFavoriteResult) {
+                                if (uiState.isWaitingForFavoriteResult || uiState.isLoadingFavorite) {
                                     CircularProgressIndicator(
                                         modifier = Modifier
                                             .size(20.dp)
@@ -264,7 +293,7 @@ fun DetailedStoreScreenContent(
                         }
                     }
                     Text(
-                        text = "Productos de $storeName",
+                        text = "Productos de ${uiState.store.name}",
                         fontSize = 20.sp,
                         fontWeight = FontWeight.Bold,
                         color = Color.Black,
@@ -294,38 +323,146 @@ fun DetailedStoreScreenContent(
                         }
 
                         is LoadState.NotLoading -> {
-                            LazyVerticalGrid(
-                                columns = GridCells.Fixed(count = 2),
+                            if (products.itemCount == 0) {
+                                DetailedStoreEmptyProducts(
+                                    modifier = Modifier
+                                        .padding(10.dp)
+                                )
+                            } else {
+                                LazyVerticalGrid(
+                                    columns = GridCells.Fixed(count = 2),
+                                    modifier = Modifier
+                                        .padding(10.dp)
+                                        .heightIn(max = 1000.dp)
+                                        .nestedScroll(connection = object : NestedScrollConnection {
+                                            override fun onPreScroll(
+                                                available: Offset,
+                                                source: NestedScrollSource
+                                            ): Offset {
+                                                if (scrollState.canScrollForward && available.y < 0) {
+                                                    val consumed =
+                                                        scrollState.dispatchRawDelta(-available.y)
+                                                    return Offset(x = 0f, y = -consumed)
+                                                }
+                                                return Offset.Zero
+                                            }
+                                        })
+                                ) {
+                                    items(
+                                        count = products.itemCount,
+                                        key = products.itemKey { item ->
+                                            item.id
+                                        }
+                                    ) { index ->
+                                        val product = products[index]
+                                        if (product != null) {
+                                            DetailedStoreItem(
+                                                product = product,
+                                                uiState.store.userId,
+                                                onClick = onProductClick
+                                            )
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(start = 10.dp, top = 10.dp, end = 10.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text(
+                            text = "Reseñas de ${uiState.store.name}",
+                            fontSize = 20.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = Color.Black,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis,
+                            textAlign = TextAlign.Start,
+                            modifier = Modifier
+                                .weight(1f)
+                        )
+                        Text(
+                            text = totalRevs,
+                            fontSize = 17.sp,
+                            fontWeight = FontWeight.Light,
+                            fontStyle = FontStyle.Italic,
+                            color = Color.DarkGray,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis,
+                            textAlign = TextAlign.End,
+                            modifier = Modifier
+                                .weight(0.5f)
+                                .padding(end = 5.dp)
+                                .clickable { onTotalReviewsClick(uiState.store.id) }
+                        )
+                    }
+                    when (reviews.loadState.refresh) {
+                        is LoadState.Error -> {
+
+                        }
+
+                        LoadState.Loading -> {
+                            LazyColumn(
                                 modifier = Modifier
                                     .padding(10.dp)
-                                    .heightIn(max = 1000.dp)
-                                    .nestedScroll(connection = object : NestedScrollConnection {
-                                        override fun onPreScroll(
-                                            available: Offset,
-                                            source: NestedScrollSource
-                                        ): Offset {
-                                            if (scrollState.canScrollForward && available.y < 0) {
-                                                val consumed =
-                                                    scrollState.dispatchRawDelta(-available.y)
-                                                return Offset(x = 0f, y = -consumed)
-                                            }
-                                            return Offset.Zero
-                                        }
-                                    })
+                                    .heightIn(max = 200.dp)
+                                    .bringIntoViewRequester(bringIntoViewRequesterForStoreReviews)
                             ) {
-                                items(
-                                    count = products.itemCount,
-                                    key = products.itemKey { item ->
-                                        item.id
-                                    }
-                                ) { index ->
-                                    val product = products[index]
-                                    if (product != null) {
-                                        DetailedStoreItem(
-                                            product = product,
-                                            uiState.store.userId,
-                                            onClick = onProductClick
+                                items(3) {
+                                    DetailedStoreReviewItemShimmer()
+                                }
+                            }
+                        }
+
+                        is LoadState.NotLoading -> {
+                            if (reviews.itemCount == 0) {
+                                DetailedStoreEmptyReviews(
+                                    modifier = Modifier
+                                        .padding(10.dp)
+                                        .bringIntoViewRequester(
+                                            bringIntoViewRequesterForStoreReviews
                                         )
+                                )
+                            } else {
+                                LazyColumn(
+                                    modifier = Modifier
+                                        .padding(10.dp)
+                                        .heightIn(max = 200.dp)
+                                        .nestedScroll(connection = object : NestedScrollConnection {
+                                            override fun onPreScroll(
+                                                available: Offset,
+                                                source: NestedScrollSource
+                                            ): Offset {
+                                                if (scrollState.canScrollForward && available.y < 0) {
+                                                    val consumed =
+                                                        scrollState.dispatchRawDelta(-available.y)
+                                                    return Offset(x = 0f, y = -consumed)
+                                                }
+                                                return Offset.Zero
+                                            }
+                                        })
+                                        .bringIntoViewRequester(
+                                            bringIntoViewRequesterForStoreReviews
+                                        )
+                                ) {
+                                    items(
+                                        count = reviews.itemCount,
+                                        key = reviews.itemKey { item ->
+                                            item.id
+                                        }
+                                    ) { index ->
+                                        val review = reviews[index]
+                                        if (review != null) {
+                                            DetailedStoreReviewItem(
+                                                rating = review.rating,
+                                                comment = review.comment,
+                                                sentiment = review.sentiment,
+                                                updatedAt = review.updatedAt
+                                            )
+                                        }
                                     }
                                 }
                             }

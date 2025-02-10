@@ -9,7 +9,8 @@
     <!-- Api server -->
     <string name="base_api_server_url">http://10.0.2.2:5001</string>
 
-    <!-- Google Maps api -->
+    <!-- Py Api server -->
+    <string name="py_api_server_url">http://10.0.2.2:8000</string>
 
     <!-- Navigation -->
     <string name="navigation_home">Inicio</string>

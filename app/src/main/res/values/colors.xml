@@ -17,6 +17,14 @@
     <color name="order_status_error">#E91E1E</color>
     <color name="order_status_unassigned">#607D8B</color>
 
+    <!-- Review sentiment colors -->
+    <color name="review_sentiment_very_negative">#BF0808</color>
+    <color name="review_sentiment_negative">#FFC107</color>
+    <color name="review_sentiment_neutral">#06C57B</color>
+    <color name="review_sentiment_positive">#90CA4A</color>
+    <color name="review_sentiment_very_positive">#2BBD30</color>
+    <color name="review_sentiment_unassigned">#607D8B</color>
+
     <!-- Rating bar colors -->
     <color name="rating_bar_empty">#EDB407</color>
     <color name="rating_bar_filled">#FFC107</color>

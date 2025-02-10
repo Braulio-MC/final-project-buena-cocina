@@ -30,6 +30,12 @@ sealed interface Screen {
 
         @Serializable
         data class ChatDetailed(val channelId: String) : MainSerializable()
+
+        @Serializable
+        data class StoreReview(val storeId: String) : MainSerializable()
+
+        @Serializable
+        data class ProductReview(val productId: String) : MainSerializable()
     }
 
     sealed class Auth(val route: String) : Screen {

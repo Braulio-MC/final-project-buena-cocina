@@ -1,48 +1,32 @@
 package com.bmc.buenacocina.domain.repository
 
-import androidx.paging.ExperimentalPagingApi
-import androidx.paging.Pager
-import androidx.paging.PagingConfig
-import androidx.paging.PagingData
-import androidx.paging.map
-import com.bmc.buenacocina.core.SEARCH_PAGING_PAGE_SIZE
-import com.bmc.buenacocina.data.local.LocalDatabase
-import com.bmc.buenacocina.data.local.dao.SearchDao
-import com.bmc.buenacocina.data.local.dao.SearchRemoteKeyDao
+import com.bmc.buenacocina.core.SEARCH_MULTI_INDEX_HITS_PER_PAGE
+import com.bmc.buenacocina.common.Searchable
+import com.bmc.buenacocina.common.SearchableTypes
+import com.bmc.buenacocina.data.network.model.ProductSearchNetwork
+import com.bmc.buenacocina.data.network.model.StoreSearchNetwork
 import com.bmc.buenacocina.data.network.service.SearchService
-import com.bmc.buenacocina.di.AppDispatcher
-import com.bmc.buenacocina.di.AppDispatchers
-import com.bmc.buenacocina.domain.model.SearchResultDomain
-import kotlinx.coroutines.CoroutineDispatcher
+import com.bmc.buenacocina.domain.mapper.asDomain
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import javax.inject.Inject
 
-class SearchRepository @Inject constructor (
-    private val remoteService: SearchService,
-    private val localDatabase: LocalDatabase,
-    private val searchDao: SearchDao,
-    private val searchRemoteKeyDao: SearchRemoteKeyDao,
-    @AppDispatcher(AppDispatchers.IO) private val ioDispatcher: CoroutineDispatcher
+class SearchRepository @Inject constructor(
+    private val service: SearchService,
 ) {
-//    @OptIn(ExperimentalPagingApi::class)
-//    fun search(query: String): Flow<PagingData<SearchResultDomain>> {
-//        return Pager(
-//            config = PagingConfig(
-//                pageSize = SEARCH_PAGING_PAGE_SIZE,
-//                enablePlaceholders = false
-//            ),
-//            remoteMediator = SearchRemoteMediator(
-//                query = query,
-//                localDatabase = localDatabase,
-//                apiService = remoteService,
-//                searchDao = searchDao,
-//                remoteKeyDao = searchRemoteKeyDao
-//            ),
-//            pagingSourceFactory = { searchDao.get() }
-//        ).flow.map { pagingData ->
-//            pagingData.map { it.asDomain() }
-//        }.flowOn(ioDispatcher)
-//    }
+    fun searchMultiIndex(
+        query: String,
+        indexNames: List<String>,
+        hitsPerPage: Int = SEARCH_MULTI_INDEX_HITS_PER_PAGE
+    ): Flow<List<Searchable>> {
+        val response = service.searchMultiIndex(query, indexNames, hitsPerPage)
+        return response.map { list ->
+            list.map { searchable ->
+                when (searchable.type) {
+                    SearchableTypes.PRODUCTS -> (searchable as ProductSearchNetwork).asDomain()
+                    SearchableTypes.STORES -> (searchable as StoreSearchNetwork).asDomain()
+                }
+            }
+        }
+    }
 }

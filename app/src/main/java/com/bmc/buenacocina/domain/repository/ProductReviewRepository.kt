@@ -4,21 +4,27 @@ import androidx.paging.Pager
 import androidx.paging.PagingConfig
 import androidx.paging.PagingData
 import androidx.paging.map
+import com.bmc.buenacocina.core.ANALYZED_PRODUCT_REVIEW_PAGING_PAGE_SIZE
 import com.bmc.buenacocina.core.PAGING_PAGE_SIZE
 import com.bmc.buenacocina.data.network.dto.CreateProductReviewDto
 import com.bmc.buenacocina.data.network.dto.UpsertProductReviewDto
+import com.bmc.buenacocina.data.network.service.ProductReviewAnalyzedService
 import com.bmc.buenacocina.data.network.service.ProductReviewService
+import com.bmc.buenacocina.data.paging.ProductReviewAnalyzedPagingSource
 import com.bmc.buenacocina.data.paging.ProductReviewPagingSource
 import com.bmc.buenacocina.domain.mapper.asDomain
+import com.bmc.buenacocina.domain.model.ProductReviewAnalyzedDomain
 import com.bmc.buenacocina.domain.model.ProductReviewDomain
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.Query
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
+import java.time.LocalDateTime
 import javax.inject.Inject
 
 class ProductReviewRepository @Inject constructor(
     private val productReviewService: ProductReviewService,
+    private val productReviewAnalyzedService: ProductReviewAnalyzedService,
     private val firestore: FirebaseFirestore
 ) {
     fun create(
@@ -61,6 +67,31 @@ class ProductReviewRepository @Inject constructor(
                 pageSize = PAGING_PAGE_SIZE
             ),
             pagingSourceFactory = { ProductReviewPagingSource(query, firestore) }
+        ).flow.map { pagingData ->
+            pagingData.map { it.asDomain() }
+        }
+    }
+
+    fun pagingAnalyzedByProductIdWithRange(
+        productId: String,
+        limit: Int? = null,
+        start: LocalDateTime? = null,
+        end: LocalDateTime? = null
+    ): Flow<PagingData<ProductReviewAnalyzedDomain>> {
+        return Pager(
+            config = PagingConfig(
+                pageSize = limit ?: ANALYZED_PRODUCT_REVIEW_PAGING_PAGE_SIZE,
+                enablePlaceholders = false,
+                initialLoadSize = limit ?: ANALYZED_PRODUCT_REVIEW_PAGING_PAGE_SIZE
+            ),
+            pagingSourceFactory = {
+                ProductReviewAnalyzedPagingSource(
+                    productReviewAnalyzedService,
+                    productId,
+                    start,
+                    end
+                )
+            }
         ).flow.map { pagingData ->
             pagingData.map { it.asDomain() }
         }

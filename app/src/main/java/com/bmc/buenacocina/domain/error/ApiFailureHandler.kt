@@ -1,6 +1,5 @@
-package com.bmc.buenacocina.data.network.handler
+package com.bmc.buenacocina.domain.error
 
-import com.bmc.buenacocina.domain.error.DataError
 import com.skydoves.sandwich.StatusCode
 
 fun handleApiFailure(statusCode: StatusCode): DataError {

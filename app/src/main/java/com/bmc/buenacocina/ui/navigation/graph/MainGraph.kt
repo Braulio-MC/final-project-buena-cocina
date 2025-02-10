@@ -6,7 +6,6 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import com.bmc.buenacocina.ui.navigation.Graph
 import com.bmc.buenacocina.ui.navigation.Screen
-import dagger.hilt.android.qualifiers.ApplicationContext
 import io.getstream.chat.android.compose.viewmodel.channels.ChannelViewModelFactory
 
 @Composable
@@ -14,11 +13,14 @@ fun MainGraph(
     windowSizeClass: WindowSizeClass,
     channelViewModelFactory: ChannelViewModelFactory,
     navController: NavHostController,
+    onSearchBackButton: () -> Unit,
     onStoreFavoriteBackButton: () -> Unit,
     onProductFavoriteBackButton: () -> Unit,
     onStoreCategoryBackButton: () -> Unit,
     onDetailedStoreBackButton: () -> Unit,
+    onStoreReviewBackButton: () -> Unit,
     onDetailedProductBackButton: () -> Unit,
+    onProductReviewBackButton: () -> Unit,
     onOrderHistoryBackButton: () -> Unit,
     onDetailedOrderBackButton: () -> Unit,
     onDetailedOrderOrderRatingUpdatedSuccessful: () -> Unit,
@@ -50,6 +52,12 @@ fun MainGraph(
                     launchSingleTop = true
                 }
             },
+            onSearchBackButton = onSearchBackButton,
+            onSearchStoreHitItemClick = { storeId ->
+                navController.navigate(Screen.MainSerializable.StoreDetailed(storeId)) {
+                    launchSingleTop = true
+                }
+            },
             onStoreFavoriteBackButton = onStoreFavoriteBackButton,
             onStoreFavoriteItemClick = { storeId ->
                 navController.navigate(Screen.MainSerializable.StoreDetailed(storeId)) {
@@ -74,13 +82,25 @@ fun MainGraph(
                 }
             },
             onDetailedStoreBackButton = onDetailedStoreBackButton,
+            onStoreReviewBackButton = onStoreReviewBackButton,
             onDetailedStoreProductClick = { productId, storeOwnerId ->
                 navController.navigate(Screen.MainSerializable.ProductDetailed(productId, storeOwnerId)) {
                     launchSingleTop = true
                 }
             },
+            onDetailedStoreTotalReviewsClick = { storeId ->
+                navController.navigate(Screen.MainSerializable.StoreReview(storeId)) {
+                    launchSingleTop = true
+                }
+            },
             onDetailedProductBackButton = onDetailedProductBackButton,
+            onProductReviewBackButton = onProductReviewBackButton,
             onProductAddedToCartSuccessful = {},
+            onDetailedProductTotalReviewsClick = { productId ->
+                navController.navigate(Screen.MainSerializable.ProductReview(productId)) {
+                    launchSingleTop = true
+                }
+            },
             onOrderHistoryBackButton = onOrderHistoryBackButton,
             onOrderHistoryItemClick = { orderId ->
                 navController.navigate(Screen.MainSerializable.OrderDetailed(orderId)) {

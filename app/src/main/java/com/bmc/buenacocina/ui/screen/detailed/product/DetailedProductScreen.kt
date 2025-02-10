@@ -1,8 +1,10 @@
 package com.bmc.buenacocina.ui.screen.detailed.product
 
 import android.util.Log
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.ScrollState
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -11,9 +13,13 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.relocation.BringIntoViewRequester
+import androidx.compose.foundation.relocation.bringIntoViewRequester
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
@@ -46,15 +52,20 @@ import androidx.compose.material3.windowsizeclass.WindowSizeClass
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.RectangleShape
+import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
+import androidx.compose.ui.input.nestedscroll.NestedScrollSource
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
@@ -62,17 +73,25 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.paging.LoadState
+import androidx.paging.compose.LazyPagingItems
+import androidx.paging.compose.collectAsLazyPagingItems
+import androidx.paging.compose.itemKey
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.bmc.buenacocina.R
 import com.bmc.buenacocina.core.DateUtils
 import com.bmc.buenacocina.core.NetworkStatus
+import com.bmc.buenacocina.domain.model.ProductReviewAnalyzedDomain
 import com.bmc.buenacocina.ui.viewmodel.DetailedProductViewModel
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.launch
 import java.math.BigDecimal
+import java.math.BigInteger
 import java.math.RoundingMode
 import java.time.LocalDateTime
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
 @Composable
 fun DetailedProductScreen(
     windowSizeClass: WindowSizeClass,
@@ -87,15 +106,18 @@ fun DetailedProductScreen(
     scrollState: ScrollState = rememberScrollState(),
     scrollBehavior: TopAppBarScrollBehavior = TopAppBarDefaults.pinnedScrollBehavior(topAppBarState),
     onProductAddedToCartSuccessful: () -> Unit,
+    onTotalReviewsClick: (String) -> Unit,
     onBackButton: () -> Unit
 ) {
     val uiState = viewModel.uiState.collectAsStateWithLifecycle()
-    val resultState = viewModel.resultState.collectAsStateWithLifecycle()
     val netState = viewModel.netState.collectAsStateWithLifecycle()
+    val reviews = viewModel.reviews.collectAsLazyPagingItems()
     val currentContext = LocalContext.current
     val snackBarHostState = remember {
         SnackbarHostState()
     }
+    val bringIntoViewRequesterForProductReviews = remember { BringIntoViewRequester() }
+    val coroutineScope = rememberCoroutineScope()
 
     LaunchedEffect(key1 = currentContext) {
         viewModel.events.collect { event ->
@@ -136,27 +158,33 @@ fun DetailedProductScreen(
     DetailedProductScreenContent(
         windowSizeClass = windowSizeClass,
         uiState = uiState.value,
-        resultState = resultState.value,
         netState = netState.value,
+        reviews = reviews,
         snackbarHostState = snackBarHostState,
+        bringIntoViewRequesterForProductReviews = bringIntoViewRequesterForProductReviews,
+        coroutineScope = coroutineScope,
         scrollState = scrollState,
         scrollBehavior = scrollBehavior,
         onIntent = viewModel::onIntent,
+        onTotalReviewsClick = onTotalReviewsClick,
         onBackButton = onBackButton
     )
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
 @Composable
 fun DetailedProductScreenContent(
     windowSizeClass: WindowSizeClass,
     uiState: DetailedProductUiState,
-    resultState: DetailedProductUiResultState,
     netState: NetworkStatus,
+    reviews: LazyPagingItems<ProductReviewAnalyzedDomain>,
     snackbarHostState: SnackbarHostState,
+    bringIntoViewRequesterForProductReviews: BringIntoViewRequester,
+    coroutineScope: CoroutineScope,
     scrollState: ScrollState,
     scrollBehavior: TopAppBarScrollBehavior,
     onIntent: (DetailedProductIntent) -> Unit,
+    onTotalReviewsClick: (String) -> Unit,
     onBackButton: () -> Unit
 ) {
     Scaffold(
@@ -187,7 +215,7 @@ fun DetailedProductScreenContent(
             SnackbarHost(hostState = snackbarHostState)
         }
     ) { paddingValues ->
-        if (uiState.isLoading) {
+        if (uiState.isLoadingProduct) {
             DetailedProductShimmer(
                 modifier = Modifier
                     .padding(paddingValues)
@@ -213,18 +241,22 @@ fun DetailedProductScreenContent(
                             uiState.product.discount.percentage.setScale(2, RoundingMode.HALF_DOWN)
                     }
                 }
+                val productRating =
+                    uiState.product.rating.setScale(1, RoundingMode.HALF_DOWN).toPlainString()
+                val totalRevs =
+                    "${uiState.product.totalReviews} ${if (uiState.product.totalReviews == BigInteger.ONE) "reseña" else "reseñas"}"
 
                 Column(
                     modifier = Modifier
                         .padding(paddingValues)
-                        .fillMaxSize()
-                        .verticalScroll(scrollState),
+                        .fillMaxSize(),
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
                     Column(
                         modifier = Modifier
                             .fillMaxSize()
-                            .weight(1f),
+                            .weight(1f)
+                            .verticalScroll(scrollState),
                         horizontalAlignment = Alignment.CenterHorizontally
                     ) {
                         Box(
@@ -284,12 +316,17 @@ fun DetailedProductScreenContent(
                                     modifier = Modifier
                                         .padding(5.dp)
                                         .fillMaxSize()
-                                        .weight(1f),
+                                        .weight(1f)
+                                        .clickable {
+                                            coroutineScope.launch {
+                                                bringIntoViewRequesterForProductReviews.bringIntoView()
+                                            }
+                                        },
                                     verticalAlignment = Alignment.CenterVertically,
                                     horizontalArrangement = Arrangement.SpaceEvenly
                                 ) {
                                     Text(
-                                        text = "N/A",
+                                        text = productRating,
                                         fontSize = 25.sp,
                                         color = Color.Black,
                                         fontWeight = FontWeight.Bold,
@@ -331,12 +368,12 @@ fun DetailedProductScreenContent(
                                     modifier = Modifier
                                         .fillMaxSize()
                                         .weight(1f),
-                                    enabled = !resultState.isWaitingForFavoriteResult,
+                                    enabled = !uiState.isWaitingForFavoriteResult,
                                     onClick = {
                                         onIntent(DetailedProductIntent.ToggleFavoriteProduct)
                                     }
                                 ) {
-                                    if (resultState.isWaitingForFavoriteResult) {
+                                    if (uiState.isWaitingForFavoriteResult || uiState.isLoadingFavorite) {
                                         CircularProgressIndicator(
                                             modifier = Modifier
                                                 .size(20.dp)
@@ -362,6 +399,107 @@ fun DetailedProductScreenContent(
                             modifier = Modifier
                                 .padding(10.dp)
                         )
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(start = 10.dp, top = 10.dp, end = 10.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Text(
+                                text = "Reseñas de ${uiState.product.name}",
+                                fontSize = 20.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = Color.Black,
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis,
+                                textAlign = TextAlign.Start,
+                                modifier = Modifier
+                                    .weight(1f)
+                            )
+                            Text(
+                                text = totalRevs,
+                                fontSize = 17.sp,
+                                fontWeight = FontWeight.Light,
+                                fontStyle = FontStyle.Italic,
+                                color = Color.DarkGray,
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis,
+                                textAlign = TextAlign.End,
+                                modifier = Modifier
+                                    .weight(0.5f)
+                                    .padding(end = 5.dp)
+                                    .clickable { onTotalReviewsClick(uiState.product.id) }
+                            )
+                        }
+                        when (reviews.loadState.refresh) {
+                            is LoadState.Error -> {
+
+                            }
+
+                            LoadState.Loading -> {
+                                LazyColumn(
+                                    modifier = Modifier
+                                        .padding(10.dp)
+                                        .heightIn(max = 200.dp)
+                                        .bringIntoViewRequester(bringIntoViewRequesterForProductReviews)
+                                ) {
+                                    items(3) {
+                                        DetailedProductReviewItemShimmer()
+                                    }
+                                }
+                            }
+
+                            is LoadState.NotLoading -> {
+                                if (reviews.itemCount == 0) {
+                                    DetailedProductEmptyReviews(
+                                        modifier = Modifier
+                                            .padding(10.dp)
+                                            .bringIntoViewRequester(
+                                                bringIntoViewRequesterForProductReviews
+                                            )
+                                    )
+                                } else {
+                                    LazyColumn(
+                                        modifier = Modifier
+                                            .padding(10.dp)
+                                            .heightIn(max = 200.dp)
+                                            .nestedScroll(connection = object : NestedScrollConnection {
+                                                override fun onPreScroll(
+                                                    available: Offset,
+                                                    source: NestedScrollSource
+                                                ): Offset {
+                                                    if (scrollState.canScrollForward && available.y < 0) {
+                                                        val consumed =
+                                                            scrollState.dispatchRawDelta(-available.y)
+                                                        return Offset(x = 0f, y = -consumed)
+                                                    }
+                                                    return Offset.Zero
+                                                }
+                                            })
+                                            .bringIntoViewRequester(
+                                                bringIntoViewRequesterForProductReviews
+                                            )
+                                    ) {
+                                        items(
+                                            count = reviews.itemCount,
+                                            key = reviews.itemKey { item ->
+                                                item.id
+                                            }
+                                        ) { index ->
+                                            val review = reviews[index]
+                                            if (review != null) {
+                                                DetailedProductReviewItem(
+                                                    rating = review.rating,
+                                                    comment = review.comment,
+                                                    sentiment = review.sentiment,
+                                                    updatedAt = review.updatedAt
+                                                )
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
                     }
                     Card(
                         elevation = CardDefaults.cardElevation(
@@ -407,7 +545,7 @@ fun DetailedProductScreenContent(
                                         )
                                     }
                                     Text(
-                                        text = resultState.addToCartCount.toString(),
+                                        text = uiState.addToCartCount.toString(),
                                         fontSize = 19.sp,
                                         color = Color.Black,
                                         fontWeight = FontWeight.Bold,
@@ -437,13 +575,13 @@ fun DetailedProductScreenContent(
                                 onClick = {
                                     onIntent(DetailedProductIntent.AddToShoppingCart)
                                 },
-                                enabled = !resultState.isWaitingForAddToCartResult,
+                                enabled = !uiState.isWaitingForAddToCartResult,
                                 shape = RoundedCornerShape(8.dp),
                                 modifier = Modifier
                                     .height(50.dp)
                                     .weight(0.7f)
                             ) {
-                                if (resultState.isWaitingForAddToCartResult) {
+                                if (uiState.isWaitingForAddToCartResult) {
                                     CircularProgressIndicator(
                                         modifier = Modifier
                                             .align(Alignment.CenterVertically)

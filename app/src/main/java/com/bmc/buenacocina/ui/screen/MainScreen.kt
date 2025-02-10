@@ -2,8 +2,6 @@ package com.bmc.buenacocina.ui.screen
 
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.material3.Badge
-import androidx.compose.material3.BadgedBox
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.material3.adaptive.WindowAdaptiveInfo
@@ -124,11 +122,14 @@ fun MainScreenContent(
             windowSizeClass = wsc,
             channelViewModelFactory = channelViewModelFactory,
             navController = navController,
+            onSearchBackButton = popBackStack,
             onStoreFavoriteBackButton = popBackStack,
             onProductFavoriteBackButton = popBackStack,
             onStoreCategoryBackButton = popBackStack,
             onDetailedStoreBackButton = popBackStack,
+            onStoreReviewBackButton = popBackStack,
             onDetailedProductBackButton = popBackStack,
+            onProductReviewBackButton = popBackStack,
             onOrderHistoryBackButton = popBackStack,
             onDetailedOrderBackButton = popBackStack,
             onDetailedOrderOrderRatingUpdatedSuccessful = popBackStack,

@@ -13,8 +13,8 @@ import com.bmc.buenacocina.domain.repository.StoreRepository
 import com.bmc.buenacocina.domain.repository.UserRepository
 import com.bmc.buenacocina.domain.Result
 import com.bmc.buenacocina.domain.model.StoreFavoriteDomain
+import com.bmc.buenacocina.domain.repository.StoreReviewRepository
 import com.bmc.buenacocina.ui.screen.detailed.store.DetailedStoreIntent
-import com.bmc.buenacocina.ui.screen.detailed.store.DetailedStoreUiResultState
 import com.bmc.buenacocina.ui.screen.detailed.store.DetailedStoreUiState
 import com.google.firebase.firestore.FieldPath
 import com.google.firebase.firestore.Filter
@@ -29,11 +29,12 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
@@ -44,34 +45,62 @@ class DetailedStoreViewModel @AssistedInject constructor(
     storeRepository: StoreRepository,
     private val storeFavoriteRepository: StoreFavoriteRepository,
     private val userRepository: UserRepository,
+    storeReviewRepository: StoreReviewRepository,
     productRepository: ProductRepository,
     connectivityRepository: ConnectivityRepository,
     @Assisted private val storeId: String
 ) : ViewModel() {
-    private val _resultState = MutableStateFlow(DetailedStoreUiResultState())
-    val resultState = _resultState.asStateFlow()
     private val _events = Channel<DetailedStoreEvent>()
     val events = _events.receiveAsFlow()
     private val _store = storeRepository.get(storeId)
     private val _favorite = getStoreFavorite()
-    val uiState: StateFlow<DetailedStoreUiState> = combine(
-        _store,
-        _favorite
-    ) { store, favorite ->
-        DetailedStoreUiState(
-            store = store,
-            favorite = favorite.firstOrNull()
+    private val _uiState = MutableStateFlow(DetailedStoreUiState())
+    val uiState: StateFlow<DetailedStoreUiState> = _uiState
+        .onStart {
+            _store
+                .onStart {
+                    _uiState.update { currentState ->
+                        currentState.copy(isLoadingStore = true)
+                    }
+                }
+                .onEach { store ->
+                    _uiState.update { currentState ->
+                        currentState.copy(
+                            isLoadingStore = false,
+                            store = store
+                        )
+                    }
+                }
+                .launchIn(viewModelScope)
+            _favorite
+                .onStart {
+                    _uiState.update { currentState ->
+                        currentState.copy(isLoadingFavorite = true)
+                    }
+                }
+                .onEach { favorite ->
+                    _uiState.update { currentState ->
+                        currentState.copy(
+                            isLoadingFavorite = false,
+                            favorite = favorite.firstOrNull()
+                        )
+                    }
+                }
+                .launchIn(viewModelScope)
+        }
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(SHARING_COROUTINE_TIMEOUT_IN_SEC),
+            initialValue = DetailedStoreUiState()
         )
-    }.stateIn(
-        scope = viewModelScope,
-        started = SharingStarted.WhileSubscribed(SHARING_COROUTINE_TIMEOUT_IN_SEC),
-        initialValue = DetailedStoreUiState(isLoading = true)
-    )
     private val _qProducts: (Query) -> Query = { query ->
         query.whereEqualTo(FieldPath.of("store", "id"), storeId)
     }
     val products = productRepository
         .paging(_qProducts)
+        .cachedIn(viewModelScope)
+    val reviews = storeReviewRepository
+        .pagingAnalyzedByStoreIdWithRange(storeId = storeId, limit = 3)
         .cachedIn(viewModelScope)
     val netState = connectivityRepository.observe()
         .stateIn(
@@ -121,7 +150,7 @@ class DetailedStoreViewModel @AssistedInject constructor(
     }
 
     private fun createFavoriteStore() {
-        _resultState.update { currentState ->
+        _uiState.update { currentState ->
             currentState.copy(isWaitingForFavoriteResult = true)
         }
         viewModelScope.launch {
@@ -158,7 +187,7 @@ class DetailedStoreViewModel @AssistedInject constructor(
 
     private fun processCreateFavoriteSuccess() {
         viewModelScope.launch {
-            _resultState.update { currentState ->
+            _uiState.update { currentState ->
                 currentState.copy(isWaitingForFavoriteResult = false)
             }
             _events.send(DetailedStoreEvent.CreateStoreFavoriteSuccess)
@@ -167,7 +196,7 @@ class DetailedStoreViewModel @AssistedInject constructor(
 
     private fun processCreateFavoriteFailed(e: Exception) {
         viewModelScope.launch {
-            _resultState.update { currentState ->
+            _uiState.update { currentState ->
                 currentState.copy(isWaitingForFavoriteResult = false)
             }
             _events.send(DetailedStoreEvent.CreateStoreFavoriteFailed(e))
@@ -176,7 +205,7 @@ class DetailedStoreViewModel @AssistedInject constructor(
 
     private fun deleteFavoriteStore() {
         uiState.value.favorite?.let { favorite ->
-            _resultState.update { currentState ->
+            _uiState.update { currentState ->
                 currentState.copy(isWaitingForFavoriteResult = true)
             }
             storeFavoriteRepository.delete(
@@ -193,7 +222,7 @@ class DetailedStoreViewModel @AssistedInject constructor(
 
     private fun processDeleteFavoriteSuccess() {
         viewModelScope.launch {
-            _resultState.update { currentState ->
+            _uiState.update { currentState ->
                 currentState.copy(isWaitingForFavoriteResult = false)
             }
             _events.send(DetailedStoreEvent.DeleteStoreFavoriteSuccess)
@@ -202,7 +231,7 @@ class DetailedStoreViewModel @AssistedInject constructor(
 
     private fun processDeleteFavoriteFailed(e: Exception) {
         viewModelScope.launch {
-            _resultState.update { currentState ->
+            _uiState.update { currentState ->
                 currentState.copy(isWaitingForFavoriteResult = false)
             }
             _events.send(DetailedStoreEvent.DeleteStoreFavoriteFailed(e))

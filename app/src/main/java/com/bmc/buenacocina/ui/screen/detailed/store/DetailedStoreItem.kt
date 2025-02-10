@@ -59,6 +59,9 @@ fun DetailedStoreItem(
             discountPercentage = product.discount.percentage.setScale(2, RoundingMode.HALF_DOWN)
         }
     }
+    val productRating =
+        if (product.rating > BigDecimal.ZERO) product.rating.setScale(1, RoundingMode.HALF_DOWN)
+            .toPlainString() else "N/A"
 
     Card(
         elevation = CardDefaults.cardElevation(
@@ -122,7 +125,7 @@ fun DetailedStoreItem(
                 )
                 Spacer(modifier = Modifier.width(2.dp))
                 Text(
-                    text = "N/A",
+                    text = productRating,
                     fontSize = 17.sp,
                     color = Color.DarkGray,
                     fontWeight = FontWeight.Bold,

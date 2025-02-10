@@ -11,6 +11,9 @@ data class StoreNetwork(
     val description: String = "",
     val email: String = "",
     val phoneNumber: String = "",
+    val rating: Double = 0.0,
+    val totalRating: Double = 0.0,
+    val totalReviews: Int = 0,
     val image: String = "",
     val userId: String = "",
     @ServerTimestamp

@@ -19,6 +19,9 @@ data class ProductNetwork(
     val discount: ProductDiscountNetwork = ProductDiscountNetwork(),
     val store: ProductStoreNetwork = ProductStoreNetwork(),
     val category: ProductCategoryNetwork = ProductCategoryNetwork(),
+    val rating: Double = 0.0,
+    val totalRating: Double = 0.0,
+    val totalReviews: Int = 0,
     val paginationKey: String = ""
 ) {
     data class ProductDiscountNetwork (

@@ -2,6 +2,7 @@ package com.bmc.buenacocina.ui.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import androidx.paging.cachedIn
 import com.bmc.buenacocina.core.DateUtils
 import com.bmc.buenacocina.core.NetworkStatus
 import com.bmc.buenacocina.core.SHARING_COROUTINE_TIMEOUT_IN_SEC
@@ -16,8 +17,8 @@ import com.bmc.buenacocina.domain.repository.ShoppingCartRepository
 import com.bmc.buenacocina.domain.repository.UserRepository
 import com.bmc.buenacocina.domain.model.ProductDomain
 import com.bmc.buenacocina.domain.model.ProductFavoriteDomain
+import com.bmc.buenacocina.domain.repository.ProductReviewRepository
 import com.bmc.buenacocina.ui.screen.detailed.product.DetailedProductIntent
-import com.bmc.buenacocina.ui.screen.detailed.product.DetailedProductUiResultState
 import com.bmc.buenacocina.ui.screen.detailed.product.DetailedProductUiState
 import com.google.firebase.firestore.Filter
 import com.google.firebase.firestore.Query
@@ -31,11 +32,12 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
@@ -50,28 +52,56 @@ class DetailedProductViewModel @AssistedInject constructor(
     private val productFavoriteRepository: ProductFavoriteRepository,
     private val shoppingCartRepository: ShoppingCartRepository,
     private val userRepository: UserRepository,
+    productReviewRepository: ProductReviewRepository,
     connectivityRepository: ConnectivityRepository,
     @Assisted("productId") private val productId: String,
     @Assisted("storeOwnerId") private val storeOwnerId: String
 ) : ViewModel() {
     private val mutex = Mutex()
-    private val _resultState = MutableStateFlow(DetailedProductUiResultState())
     private val _product = productRepository.get(productId)
     private val _favorite = getProductFavorite()
-    val uiState: StateFlow<DetailedProductUiState> = combine(
-        _product,
-        _favorite
-    ) { product, favorite ->
-        DetailedProductUiState(
-            product = product,
-            favorite = favorite.firstOrNull()
+    private val _uiState = MutableStateFlow(DetailedProductUiState())
+    val uiState: StateFlow<DetailedProductUiState> = _uiState
+        .onStart {
+            _product
+                .onStart {
+                    _uiState.update { currentState ->
+                        currentState.copy(isLoadingProduct = true)
+                    }
+                }
+                .onEach { product ->
+                    _uiState.update { currentState ->
+                        currentState.copy(
+                            isLoadingProduct = false,
+                            product = product
+                        )
+                    }
+                }
+                .launchIn(viewModelScope)
+            _favorite
+                .onStart {
+                    _uiState.update { currentState ->
+                        currentState.copy(isLoadingFavorite = true)
+                    }
+                }
+                .onEach { favorite ->
+                    _uiState.update { currentState ->
+                        currentState.copy(
+                            isLoadingFavorite = false,
+                            favorite = favorite.firstOrNull()
+                        )
+                    }
+                }
+                .launchIn(viewModelScope)
+        }
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(SHARING_COROUTINE_TIMEOUT_IN_SEC),
+            initialValue = DetailedProductUiState()
         )
-    }.stateIn(
-        scope = viewModelScope,
-        started = SharingStarted.WhileSubscribed(SHARING_COROUTINE_TIMEOUT_IN_SEC),
-        initialValue = DetailedProductUiState(isLoading = true)
-    )
-    val resultState = _resultState.asStateFlow()
+    val reviews = productReviewRepository
+        .pagingAnalyzedByProductIdWithRange(productId = productId, limit = 3)
+        .cachedIn(viewModelScope)
     val netState = connectivityRepository.observe()
         .stateIn(
             scope = viewModelScope,
@@ -138,7 +168,7 @@ class DetailedProductViewModel @AssistedInject constructor(
     }
 
     private fun createFavoriteProduct() {
-        _resultState.update { currentState ->
+        _uiState.update { currentState ->
             currentState.copy(isWaitingForFavoriteResult = true)
         }
         viewModelScope.launch {
@@ -174,7 +204,7 @@ class DetailedProductViewModel @AssistedInject constructor(
 
     private fun processCreateFavoriteSuccess() {
         viewModelScope.launch {
-            _resultState.update { currentState ->
+            _uiState.update { currentState ->
                 currentState.copy(isWaitingForFavoriteResult = false)
             }
             _events.send(DetailedProductEvent.CreateProductFavoriteSuccess)
@@ -183,7 +213,7 @@ class DetailedProductViewModel @AssistedInject constructor(
 
     private fun processCreateFavoriteFailed(e: Exception) {
         viewModelScope.launch {
-            _resultState.update { currentState ->
+            _uiState.update { currentState ->
                 currentState.copy(isWaitingForFavoriteResult = false)
             }
             _events.send(DetailedProductEvent.CreateProductFavoriteFailed(e))
@@ -191,7 +221,7 @@ class DetailedProductViewModel @AssistedInject constructor(
     }
 
     private fun deleteFavoriteProduct() {
-        _resultState.update { currentState ->
+        _uiState.update { currentState ->
             currentState.copy(isWaitingForFavoriteResult = true)
         }
         uiState.value.favorite?.let { favorite ->
@@ -209,7 +239,7 @@ class DetailedProductViewModel @AssistedInject constructor(
 
     private fun processDeleteFavoriteSuccess() {
         viewModelScope.launch {
-            _resultState.update { currentState ->
+            _uiState.update { currentState ->
                 currentState.copy(isWaitingForFavoriteResult = false)
             }
             _events.send(DetailedProductEvent.DeleteProductFavoriteSuccess)
@@ -218,7 +248,7 @@ class DetailedProductViewModel @AssistedInject constructor(
 
     private fun processDeleteFavoriteFailed(e: Exception) {
         viewModelScope.launch {
-            _resultState.update { currentState ->
+            _uiState.update { currentState ->
                 currentState.copy(isWaitingForFavoriteResult = false)
             }
             _events.send(DetailedProductEvent.DeleteProductFavoriteFailed(e))
@@ -226,7 +256,7 @@ class DetailedProductViewModel @AssistedInject constructor(
     }
 
     private suspend fun updateAddToCartCount(count: BigInteger) = mutex.withLock {
-        _resultState.update { currentState ->
+        _uiState.update { currentState ->
             val currentCount = currentState.addToCartCount
             val finalCount = currentCount + (count)
             if (finalCount <= BigInteger.ZERO) {
@@ -237,7 +267,7 @@ class DetailedProductViewModel @AssistedInject constructor(
     }
 
     private fun addToCart() {
-        _resultState.update { currentState ->
+        _uiState.update { currentState ->
             currentState.copy(isWaitingForAddToCartResult = true)
         }
         uiState.value.product?.let { product ->
@@ -288,7 +318,7 @@ class DetailedProductViewModel @AssistedInject constructor(
             throw Exception("Failed to add product to cart") // Custom exception here
         }
         return CreateShoppingCartItemDto(
-            quantity = _resultState.value.addToCartCount.toInt(),
+            quantity = _uiState.value.addToCartCount.toInt(),
             product = CreateShoppingCartItemDto.CreateShoppingCartItemProductDto(
                 id = product.id,
                 name = product.name,
@@ -307,7 +337,7 @@ class DetailedProductViewModel @AssistedInject constructor(
 
     private fun processAddToCartSuccess() {
         viewModelScope.launch {
-            _resultState.update { currentState ->
+            _uiState.update { currentState ->
                 currentState.copy(isWaitingForAddToCartResult = false)
             }
             _events.send(DetailedProductEvent.ProductAddedToCartSuccess)
@@ -316,7 +346,7 @@ class DetailedProductViewModel @AssistedInject constructor(
 
     private fun processAddToCartFailed(e: Exception) {
         viewModelScope.launch {
-            _resultState.update { currentState ->
+            _uiState.update { currentState ->
                 currentState.copy(isWaitingForAddToCartResult = false)
             }
             _events.send(DetailedProductEvent.ProductAddedToCartFailed(e))

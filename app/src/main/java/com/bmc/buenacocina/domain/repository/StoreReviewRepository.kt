@@ -4,22 +4,28 @@ import androidx.paging.Pager
 import androidx.paging.PagingConfig
 import androidx.paging.PagingData
 import androidx.paging.map
+import com.bmc.buenacocina.core.ANALYZED_STORE_REVIEW_PAGING_PAGE_SIZE
 import com.bmc.buenacocina.core.PAGING_PAGE_SIZE
 import com.bmc.buenacocina.data.network.dto.CreateStoreReviewDto
 import com.bmc.buenacocina.data.network.dto.UpdateStoreReviewDto
 import com.bmc.buenacocina.data.network.dto.UpsertStoreReviewDto
+import com.bmc.buenacocina.data.network.service.StoreReviewAnalyzedService
 import com.bmc.buenacocina.data.network.service.StoreReviewService
+import com.bmc.buenacocina.data.paging.StoreReviewAnalyzedPagingSource
 import com.bmc.buenacocina.data.paging.StoreReviewPagingSource
 import com.bmc.buenacocina.domain.mapper.asDomain
+import com.bmc.buenacocina.domain.model.StoreReviewAnalyzedDomain
 import com.bmc.buenacocina.domain.model.StoreReviewDomain
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.Query
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
+import java.time.LocalDateTime
 import javax.inject.Inject
 
 class StoreReviewRepository @Inject constructor(
     private val storeReviewService: StoreReviewService,
+    private val storeReviewAnalyzedService: StoreReviewAnalyzedService,
     private val firestore: FirebaseFirestore
 ) {
     fun create(
@@ -63,6 +69,31 @@ class StoreReviewRepository @Inject constructor(
                 pageSize = PAGING_PAGE_SIZE
             ),
             pagingSourceFactory = { StoreReviewPagingSource(query, firestore) }
+        ).flow.map { pagingData ->
+            pagingData.map { it.asDomain() }
+        }
+    }
+
+    fun pagingAnalyzedByStoreIdWithRange(
+        storeId: String,
+        limit: Int? = null,
+        start: LocalDateTime? = null,
+        end: LocalDateTime? = null
+    ): Flow<PagingData<StoreReviewAnalyzedDomain>> {
+        return Pager(
+            config = PagingConfig(
+                pageSize = limit ?: ANALYZED_STORE_REVIEW_PAGING_PAGE_SIZE,
+                enablePlaceholders = false,
+                initialLoadSize = limit ?: ANALYZED_STORE_REVIEW_PAGING_PAGE_SIZE
+            ),
+            pagingSourceFactory = {
+                StoreReviewAnalyzedPagingSource(
+                    storeReviewAnalyzedService,
+                    storeId,
+                    start,
+                    end
+                )
+            }
         ).flow.map { pagingData ->
             pagingData.map { it.asDomain() }
         }

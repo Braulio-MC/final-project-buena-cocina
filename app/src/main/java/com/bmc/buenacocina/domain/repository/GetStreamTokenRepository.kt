@@ -1,8 +1,8 @@
 package com.bmc.buenacocina.domain.repository
 
 import com.bmc.buenacocina.data.network.dto.GetGetStreamTokenDto
-import com.bmc.buenacocina.data.network.handler.handleApiException
-import com.bmc.buenacocina.data.network.handler.handleApiFailure
+import com.bmc.buenacocina.domain.error.handleApiException
+import com.bmc.buenacocina.domain.error.handleApiFailure
 import com.bmc.buenacocina.data.network.service.GetStreamTokenService
 import com.bmc.buenacocina.domain.Result
 import com.bmc.buenacocina.domain.error.DataError

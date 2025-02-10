@@ -29,6 +29,7 @@ output.json
 /.idea/runConfigurations.xml
 /.idea/deploymentTargetSelector.xml
 /.idea/inspectionProfiles/Project_Default.xml
+/.idea/kotlinc.xml
 misc.xml
 deploymentTargetDropDown.xml
 render.experimental.xml

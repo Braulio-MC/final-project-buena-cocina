@@ -28,6 +28,9 @@ object ProductMapper {
                 startDate = DateUtils.firebaseTimestampToLocalDateTime(network.discount.startDate),
                 endDate = DateUtils.firebaseTimestampToLocalDateTime(network.discount.endDate)
             ),
+            rating = network.rating.toBigDecimal(),
+            totalRating = network.totalReviews.toBigDecimal(),
+            totalReviews = network.totalReviews.toBigInteger(),
             createdAt = DateUtils.firebaseTimestampToLocalDateTime(network.createdAt),
             updatedAt = DateUtils.firebaseTimestampToLocalDateTime(network.updatedAt)
         )

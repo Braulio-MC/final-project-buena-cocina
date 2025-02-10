@@ -17,9 +17,11 @@ import com.bmc.buenacocina.ui.screen.detailed.product.DetailedProductScreen
 import com.bmc.buenacocina.ui.screen.detailed.store.DetailedStoreScreen
 import com.bmc.buenacocina.ui.screen.home.HomeScreen
 import com.bmc.buenacocina.ui.screen.orderhistory.OrderHistoryScreen
+import com.bmc.buenacocina.ui.screen.productReview.ProductReviewScreen
 import com.bmc.buenacocina.ui.screen.productfavorite.ProductFavoriteScreen
 import com.bmc.buenacocina.ui.screen.search.SearchScreen
 import com.bmc.buenacocina.ui.screen.shoppingcart.ShoppingCartScreen
+import com.bmc.buenacocina.ui.screen.storeReview.StoreReviewScreen
 import com.bmc.buenacocina.ui.screen.storefavorite.StoreFavoriteScreen
 import io.getstream.chat.android.compose.viewmodel.channels.ChannelViewModelFactory
 import io.getstream.chat.android.models.Channel
@@ -30,6 +32,8 @@ fun NavGraphBuilder.mainGraph(
     onSearchBarButton: () -> Unit,
     onHomeProfileBottomStoreFavoritesButton: () -> Unit,
     onHomeProfileBottomProductFavoritesButton: () -> Unit,
+    onSearchBackButton: () -> Unit,
+    onSearchStoreHitItemClick: (String) -> Unit,
     onStoreFavoriteBackButton: () -> Unit,
     onStoreFavoriteItemClick: (String) -> Unit,
     onProductFavoriteBackButton: () -> Unit,
@@ -38,9 +42,13 @@ fun NavGraphBuilder.mainGraph(
     onStoreCategoryButton: () -> Unit,
     onStoreCategoryStore: (String) -> Unit,
     onDetailedStoreBackButton: () -> Unit,
+    onStoreReviewBackButton: () -> Unit,
     onDetailedStoreProductClick: (String, String) -> Unit,
+    onDetailedStoreTotalReviewsClick: (String) -> Unit,
     onDetailedProductBackButton: () -> Unit,
+    onProductReviewBackButton: () -> Unit,
     onProductAddedToCartSuccessful: () -> Unit,
+    onDetailedProductTotalReviewsClick: (String) -> Unit,
     onOrderHistoryBackButton: () -> Unit,
     onOrderHistoryItemClick: (String) -> Unit,
     onDetailedOrderBackButton: () -> Unit,
@@ -68,7 +76,10 @@ fun NavGraphBuilder.mainGraph(
             onStoreFavoritesButton = onHomeProfileBottomStoreFavoritesButton,
             onProductFavoritesButton = onHomeProfileBottomProductFavoritesButton
         )
-        searchScreen()
+        searchScreen(
+            onStoreHitItemClick = onSearchStoreHitItemClick,
+            onBackButton = onSearchBackButton
+        )
         storeFavoriteScreen(
             windowSizeClass = windowSizeClass,
             onStoreFavoriteClick = onStoreFavoriteItemClick,
@@ -88,12 +99,22 @@ fun NavGraphBuilder.mainGraph(
         detailedStoreScreen(
             windowSizeClass = windowSizeClass,
             onProductClick = onDetailedStoreProductClick,
+            onTotalReviewsClick = onDetailedStoreTotalReviewsClick,
             onBackButton = onDetailedStoreBackButton
+        )
+        storeReviewScreen(
+            windowSizeClass = windowSizeClass,
+            onBackButton = onStoreReviewBackButton
         )
         detailedProductScreen(
             windowSizeClass = windowSizeClass,
             onProductAddedToCartSuccessful = onProductAddedToCartSuccessful,
+            onTotalReviewsClick = onDetailedProductTotalReviewsClick,
             onBackButton = onDetailedProductBackButton
+        )
+        productReviewScreen(
+            windowSizeClass = windowSizeClass,
+            onBackButton = onProductReviewBackButton
         )
         orderHistoryScreen(
             windowSizeClass = windowSizeClass,
@@ -149,9 +170,15 @@ fun NavGraphBuilder.homeScreen(
     }
 }
 
-fun NavGraphBuilder.searchScreen() {
+fun NavGraphBuilder.searchScreen(
+    onStoreHitItemClick: (String) -> Unit,
+    onBackButton: () -> Unit
+) {
     composable(Screen.Main.Search.route) {
-        SearchScreen()
+        SearchScreen(
+            onStoreHitItemClick = onStoreHitItemClick,
+            onBackButton = onBackButton
+        )
     }
 }
 
@@ -206,6 +233,7 @@ fun NavGraphBuilder.storeCategoryScreen(
 fun NavGraphBuilder.detailedStoreScreen(
     windowSizeClass: WindowSizeClass,
     onProductClick: (String, String) -> Unit,
+    onTotalReviewsClick: (String) -> Unit,
     onBackButton: () -> Unit
 ) {
     composable<Screen.MainSerializable.StoreDetailed> {
@@ -214,6 +242,22 @@ fun NavGraphBuilder.detailedStoreScreen(
             windowSizeClass = windowSizeClass,
             storeId = nav.storeId,
             onProductClick = onProductClick,
+            onTotalReviewsClick = onTotalReviewsClick,
+            onBackButton = onBackButton
+        )
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+fun NavGraphBuilder.storeReviewScreen(
+    windowSizeClass: WindowSizeClass,
+    onBackButton: () -> Unit
+) {
+    composable<Screen.MainSerializable.StoreReview> {
+        val nav = it.toRoute<Screen.MainSerializable.StoreReview>()
+        StoreReviewScreen(
+            windowSizeClass = windowSizeClass,
+            storeId = nav.storeId,
             onBackButton = onBackButton
         )
     }
@@ -223,6 +267,7 @@ fun NavGraphBuilder.detailedStoreScreen(
 fun NavGraphBuilder.detailedProductScreen(
     windowSizeClass: WindowSizeClass,
     onProductAddedToCartSuccessful: () -> Unit,
+    onTotalReviewsClick: (String) -> Unit,
     onBackButton: () -> Unit
 ) {
     composable<Screen.MainSerializable.ProductDetailed> {
@@ -232,6 +277,22 @@ fun NavGraphBuilder.detailedProductScreen(
             productId = nav.productId,
             storeOwnerId = nav.storeOwnerId,
             onProductAddedToCartSuccessful = onProductAddedToCartSuccessful,
+            onTotalReviewsClick = onTotalReviewsClick,
+            onBackButton = onBackButton
+        )
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+fun NavGraphBuilder.productReviewScreen(
+    windowSizeClass: WindowSizeClass,
+    onBackButton: () -> Unit
+) {
+    composable<Screen.MainSerializable.ProductReview> {
+        val nav = it.toRoute<Screen.MainSerializable.ProductReview>()
+        ProductReviewScreen(
+            windowSizeClass = windowSizeClass,
+            productId = nav.productId,
             onBackButton = onBackButton
         )
     }

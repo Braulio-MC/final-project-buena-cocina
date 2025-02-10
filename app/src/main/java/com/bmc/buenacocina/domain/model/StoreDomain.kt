@@ -1,5 +1,7 @@
 package com.bmc.buenacocina.domain.model
 
+import java.math.BigDecimal
+import java.math.BigInteger
 import java.time.LocalDateTime
 
 data class StoreDomain(
@@ -8,6 +10,9 @@ data class StoreDomain(
     val description: String,
     val email: String,
     val phoneNumber: String,
+    val rating: BigDecimal,
+    val totalRating: BigDecimal,
+    val totalReviews: BigInteger,
     val image: String,
     val userId: String,
     val updatedAt: LocalDateTime?,

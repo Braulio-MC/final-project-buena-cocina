@@ -4,14 +4,12 @@ import com.bmc.buenacocina.domain.model.ProductDomain
 import com.bmc.buenacocina.domain.model.ProductFavoriteDomain
 import java.math.BigInteger
 
-data class DetailedProductUiResultState(
+data class DetailedProductUiState(
     val isWaitingForFavoriteResult: Boolean = false,
     val isWaitingForAddToCartResult: Boolean = false,
-    val addToCartCount: BigInteger = BigInteger.ONE
-)
-
-data class DetailedProductUiState(
-    val isLoading: Boolean = false,
+    val isLoadingProduct: Boolean = false,
+    val isLoadingFavorite: Boolean = false,
+    val addToCartCount: BigInteger = BigInteger.ONE,
     val product: ProductDomain? = null,
     val favorite: ProductFavoriteDomain? = null
 )

@@ -1,6 +1,7 @@
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.jetbrains.kotlin.android)
+    alias(libs.plugins.compose.compiler)
     alias(libs.plugins.google.dagger.hilt)
     alias(libs.plugins.google.ksp)
     alias(libs.plugins.jetbrains.kotlin.serialization)
@@ -73,6 +74,9 @@ dependencies {
     implementation(libs.getstream.compose.chat)
     implementation(libs.getstream.chat.offline)
     implementation(libs.getstream.push.firebase)
+    implementation(platform(libs.algolia.search.bom))
+    implementation(libs.algolia.search)
+    implementation(libs.ktor.client.okhttp)
     implementation(libs.coil.compose.coil)
     implementation(libs.androidx.security.crypto)
     implementation(libs.compose.ratingbar)
