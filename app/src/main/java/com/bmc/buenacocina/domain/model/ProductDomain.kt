@@ -29,7 +29,8 @@ data class ProductDomain(
 
     data class ProductStoreDomain(
         val id: String,
-        val name: String
+        val name: String,
+        val ownerId: String
     )
 
     data class ProductCategoryDomain(

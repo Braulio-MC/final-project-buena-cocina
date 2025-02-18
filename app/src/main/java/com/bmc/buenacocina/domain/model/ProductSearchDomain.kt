@@ -29,6 +29,7 @@ data class ProductSearchDomain(
     )
 
     data class ProductSearchStoreDomain(
-        val name: String
+        val name: String,
+        val ownerId: String
     )
 }

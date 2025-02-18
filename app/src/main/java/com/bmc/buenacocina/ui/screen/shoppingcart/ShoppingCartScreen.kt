@@ -201,10 +201,12 @@ fun ShoppingCartScreen(
     if (uiState.value.cuceiCenterOnMap != null && uiState.value.cuceiAreaBoundsOnMap != null) {
         DeliveryLocationDialog(
             isDialogOpen = showDeliveryLocationDialog,
+            isTopLocationsOnMapLoading = uiState.value.isLoadingTopLocationsOnMap,
             cuceiCenter = uiState.value.cuceiCenterOnMap!!,
             cuceiBounds = uiState.value.cuceiAreaBoundsOnMap!!,
             currentLocation = uiState.value.currentDeliveryLocation,
             currentUserLocation = uiState.value.userLocation,
+            topLocationsOnMap = uiState.value.topLocationsOnMap,
             onIntent = viewModel::onIntent,
             onDismiss = { showDeliveryLocationDialog = false }
         )

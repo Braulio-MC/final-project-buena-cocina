@@ -28,6 +28,7 @@ import com.bmc.buenacocina.ui.viewmodel.SearchViewModel
 @Composable
 fun SearchScreen(
     viewModel: SearchViewModel = hiltViewModel(),
+    onProductHitItemClick: (String, String) -> Unit,
     onStoreHitItemClick: (String) -> Unit,
     onBackButton: () -> Unit
 ) {
@@ -36,6 +37,7 @@ fun SearchScreen(
     SearchScreenContent(
         uiState = uiState.value,
         onIntent = viewModel::onIntent,
+        onProductHitItemClick = onProductHitItemClick,
         onStoreHitItemClick = onStoreHitItemClick,
         onBackButton = onBackButton
     )
@@ -46,6 +48,7 @@ fun SearchScreen(
 fun SearchScreenContent(
     uiState: SearchUiState,
     onIntent: (SearchIntent) -> Unit,
+    onProductHitItemClick: (String, String) -> Unit,
     onStoreHitItemClick: (String) -> Unit,
     onBackButton: () -> Unit
 ) {
@@ -110,7 +113,7 @@ fun SearchScreenContent(
                         val product = hit as ProductSearchDomain
                         SearchProductItem(
                             hit = product,
-                            onClick = { }
+                            onClick = onProductHitItemClick
                         )
                     }
 

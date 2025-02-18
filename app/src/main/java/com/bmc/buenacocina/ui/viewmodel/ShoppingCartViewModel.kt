@@ -15,6 +15,7 @@ import com.bmc.buenacocina.domain.mapper.asLatLng
 import com.bmc.buenacocina.domain.model.ShoppingCartDomain
 import com.bmc.buenacocina.domain.model.ShoppingCartItemDomain
 import com.bmc.buenacocina.domain.repository.ConnectivityRepository
+import com.bmc.buenacocina.domain.repository.InsightRepository
 import com.bmc.buenacocina.domain.repository.PaymentMethodRepository
 import com.bmc.buenacocina.domain.repository.RemoteConfigRepository
 import com.bmc.buenacocina.domain.repository.ShoppingCartItemRepository
@@ -74,12 +75,14 @@ class ShoppingCartViewModel @Inject constructor(
     private val userRepository: UserRepository,
     private val remoteConfigRepository: RemoteConfigRepository,
     private val locationService: LocationService,
+    private val insightRepository: InsightRepository,
     paymentMethodRepository: PaymentMethodRepository,
     connectivityRepository: ConnectivityRepository
 ) : ViewModel() {
     private var _locationJob: Job? = null
     private val _visiblePermissionDialogQueue = MutableStateFlow<List<String>>(emptyList())
     val visiblePermissionDialogQueue: StateFlow<List<String>> = _visiblePermissionDialogQueue
+
     @OptIn(ExperimentalCoroutinesApi::class)
     private val _getShoppingCart: Flow<ShoppingCartDomain?> = flow {
         emit(userRepository.getUserId())
@@ -387,6 +390,7 @@ class ShoppingCartViewModel @Inject constructor(
                 }.launchIn(viewModelScope)
             }
         }
+        getTopLocationsOnMap()
     }
 
     fun stopLocationUpdates() {
@@ -394,6 +398,30 @@ class ShoppingCartViewModel @Inject constructor(
         _locationJob = null
         _uiState.update { currentState ->
             currentState.copy(userLocation = null)
+        }
+    }
+
+    private fun getTopLocationsOnMap() {
+        _uiState.update { currentState ->
+            currentState.copy(isLoadingTopLocationsOnMap = true)
+        }
+        viewModelScope.launch {
+            when (val response = insightRepository.getTopLocationsOnMap()) {
+                is Result.Error -> {
+                    _uiState.update { currentState ->
+                        currentState.copy(isLoadingTopLocationsOnMap = false)
+                    }
+                }
+
+                is Result.Success -> {
+                    _uiState.update { currentState ->
+                        currentState.copy(
+                            isLoadingTopLocationsOnMap = false,
+                            topLocationsOnMap = response.data
+                        )
+                    }
+                }
+            }
         }
     }
 

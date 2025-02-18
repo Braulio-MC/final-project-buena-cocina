@@ -1,5 +1,5 @@
 [versions]
-agp = "8.8.0"
+agp = "8.8.1"
 composeRatingbar = "2.1.1"
 kotlin = "2.1.10"
 kotlinSerialization = "2.1.10"
@@ -10,19 +10,19 @@ junitVersion = "1.2.1"
 espressoCore = "3.6.1"
 lifecycleRuntimeKtx = "2.8.7"
 activityCompose = "1.10.0"
-composeBom = "2025.01.01"
-composeNavigation = "2.8.6"
+composeBom = "2025.02.00"
+composeNavigation = "2.8.7"
 composeDaggerHilt = "1.2.0"
 composeCoil = "2.6.0"
 composeConstraintLayout = "1.1.0"
 composeMaterial3Wsc = "1.3.1"
-composeMaterialIconsExtended = "1.7.7"
+composeMaterialIconsExtended = "1.7.8"
 retrofit2Retrofit = "2.11.0"
 retrofit2Converter = "2.9.0"
 daggerHilt = "2.55"
 kotlinxSerializationJson = "1.8.0"
 room = "2.6.1"
-paging3 = "3.3.5"
+paging3 = "3.3.6"
 skydovesSandwich = "2.0.7"
 auth0Sdk = "2.10.2"
 splashScreen = "1.0.1"
@@ -37,6 +37,7 @@ securityCrypto = "1.1.0-alpha06"
 googlePlayServicesMaps = "19.0.0"
 googlePlayServicesLocation = "21.3.0"
 googleMapsCompose = "6.2.1"
+googleMapsUtils = "5.1.1"
 algoliaSearchBom = "3.14.1"
 ktorClientOkhttp = "3.0.3"
 
@@ -84,6 +85,7 @@ google-firebase-config-ktx = { module = "com.google.firebase:firebase-config-ktx
 google-playservices-maps = { group = "com.google.android.gms", name = "play-services-maps", version.ref = "googlePlayServicesMaps" }
 google-playservices-location = { group = "com.google.android.gms", name = "play-services-location", version.ref = "googlePlayServicesLocation" }
 google-compose-maps = { group = "com.google.maps.android", name = "maps-compose", version.ref = "googleMapsCompose" }
+google-maps-utils-ktx = { group = "com.google.maps.android", name = "maps-utils-ktx", version.ref = "googleMapsUtils" }
 jetbrains-kotlinx-serialization = { group = "org.jetbrains.kotlinx", name = "kotlinx-serialization-json", version.ref = "kotlinxSerializationJson" }
 github-skydoves-sandwich = { group = "com.github.skydoves", name = "sandwich", version.ref = "skydovesSandwich" }
 github-skydoves-sandwich-retrofit = { group = "com.github.skydoves", name = "sandwich-retrofit", version.ref = "skydovesSandwich" }

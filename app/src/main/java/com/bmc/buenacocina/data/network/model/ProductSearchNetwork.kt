@@ -28,7 +28,8 @@ data class ProductSearchNetwork(
     )
 
     data class ProductSearchStoreNetwork(
-        val name: String
+        val name: String,
+        val ownerId: String
     )
 }
 
@@ -51,6 +52,7 @@ fun Hit.toProductNetwork(): ProductSearchNetwork {
         totalReviews = additionalProperties?.get("totalReviews")?.jsonPrimitive?.content ?: "",
         store = ProductSearchNetwork.ProductSearchStoreNetwork(
             name = additionalProperties?.get("store.name")?.jsonPrimitive?.content ?: "",
+            ownerId = additionalProperties?.get("store.ownerId")?.jsonPrimitive?.content ?: ""
         ),
         image = additionalProperties?.get("image")?.jsonPrimitive?.content ?: ""
     )

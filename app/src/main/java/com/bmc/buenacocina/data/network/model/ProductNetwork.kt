@@ -33,7 +33,8 @@ data class ProductNetwork(
 
     data class ProductStoreNetwork (
         val id: String = "",
-        val name: String = ""
+        val name: String = "",
+        val ownerId: String = ""
     )
 
     data class ProductCategoryNetwork (

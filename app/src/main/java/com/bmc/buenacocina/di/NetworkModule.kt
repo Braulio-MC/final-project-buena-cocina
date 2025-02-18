@@ -10,6 +10,7 @@ import com.bmc.buenacocina.core.PY_API_OK_HTTP_CLIENT_READ_TIMEOUT_IN_SEC
 import com.bmc.buenacocina.core.PY_API_OK_HTTP_CLIENT_WRITE_TIMEOUT_IN_SEC
 import com.bmc.buenacocina.data.network.service.GetStreamChannelService
 import com.bmc.buenacocina.data.network.service.GetStreamTokenService
+import com.bmc.buenacocina.data.network.service.InsightService
 import com.bmc.buenacocina.data.network.service.ProductReviewAnalyzedService
 import com.bmc.buenacocina.data.network.service.StoreReviewAnalyzedService
 import com.skydoves.sandwich.retrofit.adapters.ApiResponseCallAdapterFactory
@@ -137,5 +138,11 @@ object NetworkModule {
     @Singleton
     fun provideProductReviewAnalyzedService(@PyApi retrofit: Retrofit): ProductReviewAnalyzedService {
         return retrofit.create(ProductReviewAnalyzedService::class.java)
+    }
+
+    @Provides
+    @Singleton
+    fun provideInsightService(@PyApi retrofit: Retrofit): InsightService {
+        return retrofit.create(InsightService::class.java)
     }
 }

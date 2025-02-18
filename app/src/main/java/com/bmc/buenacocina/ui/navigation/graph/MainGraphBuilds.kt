@@ -33,6 +33,7 @@ fun NavGraphBuilder.mainGraph(
     onHomeProfileBottomStoreFavoritesButton: () -> Unit,
     onHomeProfileBottomProductFavoritesButton: () -> Unit,
     onSearchBackButton: () -> Unit,
+    onSearchProductHitItemClick: (String, String) -> Unit,
     onSearchStoreHitItemClick: (String) -> Unit,
     onStoreFavoriteBackButton: () -> Unit,
     onStoreFavoriteItemClick: (String) -> Unit,
@@ -77,6 +78,7 @@ fun NavGraphBuilder.mainGraph(
             onProductFavoritesButton = onHomeProfileBottomProductFavoritesButton
         )
         searchScreen(
+            onProductHitItemClick = onSearchProductHitItemClick,
             onStoreHitItemClick = onSearchStoreHitItemClick,
             onBackButton = onSearchBackButton
         )
@@ -171,11 +173,13 @@ fun NavGraphBuilder.homeScreen(
 }
 
 fun NavGraphBuilder.searchScreen(
+    onProductHitItemClick: (String, String) -> Unit,
     onStoreHitItemClick: (String) -> Unit,
     onBackButton: () -> Unit
 ) {
     composable(Screen.Main.Search.route) {
         SearchScreen(
+            onProductHitItemClick = onProductHitItemClick,
             onStoreHitItemClick = onStoreHitItemClick,
             onBackButton = onBackButton
         )

@@ -15,7 +15,8 @@ object ProductMapper {
             quantity = network.quantity.toBigInteger(),
             store = ProductDomain.ProductStoreDomain(
                 id = network.store.id,
-                name = network.store.name
+                name = network.store.name,
+                ownerId = network.store.ownerId
             ),
             category = ProductDomain.ProductCategoryDomain(
                 id = network.category.id,

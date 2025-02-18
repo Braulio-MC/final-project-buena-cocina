@@ -24,7 +24,8 @@ object ProductSearchMapper {
             rating = network.rating.toFloat(),
             totalReviews = network.totalReviews.toBigInteger(),
             store = ProductSearchDomain.ProductSearchStoreDomain(
-                name = network.store.name
+                name = network.store.name,
+                ownerId = network.store.ownerId
             ),
             type = network.type,
             image = network.image

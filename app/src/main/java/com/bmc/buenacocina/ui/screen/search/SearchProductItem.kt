@@ -54,7 +54,7 @@ import java.time.LocalDateTime
 @Composable
 fun SearchProductItem(
     hit: ProductSearchDomain,
-    onClick: () -> Unit
+    onClick: (String, String) -> Unit
 ) {
     var isStoreNameOverFlowing by remember { mutableStateOf(false) }
     val storeNameTextAlign = if (isStoreNameOverFlowing) TextAlign.Start else TextAlign.End
@@ -75,7 +75,7 @@ fun SearchProductItem(
             .padding(10.dp)
             .fillMaxWidth()
             .heightIn(min = 100.dp)
-            .clickable { onClick() }
+            .clickable { onClick(hit.id, hit.store.ownerId) }
     ) {
         Row(
             modifier = Modifier

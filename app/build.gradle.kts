@@ -104,6 +104,7 @@ dependencies {
     implementation(libs.google.playservices.maps)
     implementation(libs.google.playservices.location)
     implementation(libs.google.compose.maps)
+    implementation(libs.google.maps.utils.ktx)
     annotationProcessor(libs.androidx.room.compiler)
     ksp(libs.androidx.room.compiler)
     implementation(libs.google.dagger.hilt)

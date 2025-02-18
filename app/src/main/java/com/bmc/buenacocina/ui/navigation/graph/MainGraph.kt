@@ -53,6 +53,11 @@ fun MainGraph(
                 }
             },
             onSearchBackButton = onSearchBackButton,
+            onSearchProductHitItemClick = { productId, storeOwnerId ->
+                navController.navigate(Screen.MainSerializable.ProductDetailed(productId, storeOwnerId)) {
+                    launchSingleTop = true
+                }
+            },
             onSearchStoreHitItemClick = { storeId ->
                 navController.navigate(Screen.MainSerializable.StoreDetailed(storeId)) {
                     launchSingleTop = true
