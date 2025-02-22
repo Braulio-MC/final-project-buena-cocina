@@ -75,7 +75,10 @@ class MainActivity : ComponentActivity() {
                     NavigationGraph(
                         windowSizeClass = windowSizeClass,
                         channelViewModelFactory = channelViewModelFactory,
-                        onUserAuthenticated = { _ -> processFCMTokenCreation() }
+                        onUserAuthenticated = { _ ->
+                            processFCMTokenCreation()
+                            connectUserToGetStream()
+                        }
                     )
                 }
             }
