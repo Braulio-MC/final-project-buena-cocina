@@ -32,6 +32,7 @@ fun NavGraphBuilder.mainGraph(
     onSearchBarButton: () -> Unit,
     onHomeProfileBottomStoreFavoritesButton: () -> Unit,
     onHomeProfileBottomProductFavoritesButton: () -> Unit,
+    onHomeTopSoldProductClick: (String, String) -> Unit,
     onSearchBackButton: () -> Unit,
     onSearchProductHitItemClick: (String, String) -> Unit,
     onSearchStoreHitItemClick: (String) -> Unit,
@@ -42,6 +43,7 @@ fun NavGraphBuilder.mainGraph(
     onStoreCategoryBackButton: () -> Unit,
     onStoreCategoryButton: () -> Unit,
     onStoreCategoryStore: (String) -> Unit,
+    onStoreCategoryProductHitItemClick: (String, String) -> Unit,
     onDetailedStoreBackButton: () -> Unit,
     onStoreReviewBackButton: () -> Unit,
     onDetailedStoreProductClick: (String, String) -> Unit,
@@ -75,7 +77,8 @@ fun NavGraphBuilder.mainGraph(
             onStoreCategoryButton = onStoreCategoryButton,
             onLogoutButton = onLogoutButton,
             onStoreFavoritesButton = onHomeProfileBottomStoreFavoritesButton,
-            onProductFavoritesButton = onHomeProfileBottomProductFavoritesButton
+            onProductFavoritesButton = onHomeProfileBottomProductFavoritesButton,
+            onTopSoldProductClick = onHomeTopSoldProductClick
         )
         searchScreen(
             onProductHitItemClick = onSearchProductHitItemClick,
@@ -96,6 +99,7 @@ fun NavGraphBuilder.mainGraph(
             windowSizeClass = windowSizeClass,
             onSearchBarButton = onSearchBarButton,
             onStore = onStoreCategoryStore,
+            onProductHitItemClick = onStoreCategoryProductHitItemClick,
             onBackButton = onStoreCategoryBackButton
         )
         detailedStoreScreen(
@@ -158,7 +162,8 @@ fun NavGraphBuilder.homeScreen(
     onStoreCategoryButton: () -> Unit,
     onLogoutButton: (Boolean) -> Unit,
     onStoreFavoritesButton: () -> Unit,
-    onProductFavoritesButton: () -> Unit
+    onProductFavoritesButton: () -> Unit,
+    onTopSoldProductClick: (String, String) -> Unit
 ) {
     composable(Screen.Main.Home.route) {
         HomeScreen(
@@ -167,7 +172,8 @@ fun NavGraphBuilder.homeScreen(
             onStoreCategoryButton = onStoreCategoryButton,
             onLogoutButton = onLogoutButton,
             onStoreFavoritesButton = onStoreFavoritesButton,
-            onProductFavoritesButton = onProductFavoritesButton
+            onProductFavoritesButton = onProductFavoritesButton,
+            onTopSoldProductClick = onTopSoldProductClick
         )
     }
 }
@@ -221,6 +227,7 @@ fun NavGraphBuilder.storeCategoryScreen(
     windowSizeClass: WindowSizeClass,
     onSearchBarButton: () -> Unit,
     onStore: (String) -> Unit,
+    onProductHitItemClick: (String, String) -> Unit,
     onBackButton: () -> Unit
 ) {
     composable(Screen.Main.StoreCategory.route) {
@@ -228,6 +235,7 @@ fun NavGraphBuilder.storeCategoryScreen(
             windowSizeClass = windowSizeClass,
             onSearchBarButton = onSearchBarButton,
             onStore = onStore,
+            onProductHitItemClick = onProductHitItemClick,
             onBackButton = onBackButton
         )
     }

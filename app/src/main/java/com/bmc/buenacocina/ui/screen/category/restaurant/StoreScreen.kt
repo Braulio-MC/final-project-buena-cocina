@@ -1,28 +1,32 @@
 package com.bmc.buenacocina.ui.screen.category.restaurant
 
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.ScrollState
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
-import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.Button
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -43,7 +47,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
 import androidx.compose.ui.input.nestedscroll.NestedScrollSource
 import androidx.compose.ui.input.nestedscroll.nestedScroll
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -51,25 +54,17 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.paging.LoadState
 import androidx.paging.compose.LazyPagingItems
 import androidx.paging.compose.collectAsLazyPagingItems
 import androidx.paging.compose.itemKey
 import com.bmc.buenacocina.R
+import com.bmc.buenacocina.common.Searchable
+import com.bmc.buenacocina.common.SearchableTypes
+import com.bmc.buenacocina.domain.model.ProductSearchDomain
 import com.bmc.buenacocina.domain.model.StoreDomain
 import com.bmc.buenacocina.ui.viewmodel.RestaurantCategoryViewModel
-
-data class ProductCategory(
-    val title: String,
-    val drawable: Int
-)
-
-val productCategories = listOf(
-    ProductCategory("Hamburguesa", R.drawable.hamburger_category),
-    ProductCategory("Pizza", R.drawable.pizza_category),
-    ProductCategory("Dulces", R.drawable.candy_category),
-    ProductCategory("Sushi", R.drawable.sushi_category),
-)
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -81,18 +76,24 @@ fun StoreScreen(
     scrollBehavior: TopAppBarScrollBehavior = TopAppBarDefaults.pinnedScrollBehavior(topAppBarState),
     onSearchBarButton: () -> Unit,
     onStore: (String) -> Unit,
+    onProductHitItemClick: (String, String) -> Unit,
     onBackButton: () -> Unit
 ) {
+    val uiState = viewModel.uiState.collectAsStateWithLifecycle()
     val storesExplore = viewModel.storesExplore.collectAsLazyPagingItems()
+    val productSearch = viewModel.productSearch.collectAsLazyPagingItems()
 
     StoreScreenContent(
         windowSizeClass = windowSizeClass,
+        uiState = uiState.value,
         storesExplore = storesExplore,
+        productSearch = productSearch,
         scrollState = scrollState,
         scrollBehavior = scrollBehavior,
         onIntent = viewModel::onIntent,
         onSearchBarButton = onSearchBarButton,
         onStore = onStore,
+        onProductHitItemClick = onProductHitItemClick,
         onBackButton = onBackButton
     )
 }
@@ -101,12 +102,15 @@ fun StoreScreen(
 @Composable
 fun StoreScreenContent(
     windowSizeClass: WindowSizeClass,
+    uiState: StoreUiState,
     storesExplore: LazyPagingItems<StoreDomain>,
+    productSearch: LazyPagingItems<Searchable>,
     scrollState: ScrollState,
     scrollBehavior: TopAppBarScrollBehavior,
     onIntent: (StoreIntent) -> Unit,
     onSearchBarButton: () -> Unit,
     onStore: (String) -> Unit,
+    onProductHitItemClick: (String, String) -> Unit,
     onBackButton: () -> Unit
 ) {
     Scaffold(
@@ -171,141 +175,228 @@ fun StoreScreenContent(
                     )
                 }
             }
-            LazyRow(
-                modifier = Modifier
-                    .padding(start = 10.dp, end = 10.dp, bottom = 20.dp)
-            ) {
-                items(productCategories) { item ->
-                    ProductCategoryItem(
-                        productCategory = item,
-                        onClick = { }
+            if (uiState.isLoadingProductCategories) {
+                Box(
+                    modifier = Modifier
+                        .height(100.dp)
+                        .fillMaxWidth()
+                        .padding(start = 10.dp, end = 10.dp, bottom = 10.dp),
+                    contentAlignment = Alignment.Center
+                ) {
+                    CircularProgressIndicator(
+                        modifier = Modifier
+                            .size(35.dp)
                     )
                 }
+            } else {
+                LazyRow(
+                    modifier = Modifier
+                        .wrapContentHeight()
+                        .fillMaxWidth()
+                        .padding(start = 10.dp, end = 10.dp, bottom = 10.dp)
+                ) {
+                    items(count = uiState.productCategories.size) { index ->
+                        val category = uiState.productCategories[index]
+                        ProductCategoryItem(
+                            productCategory = category,
+                            onClick = { productCategory ->
+                                onIntent(StoreIntent.UpdateCurrentProductCategory(productCategory))
+                            }
+                        )
+                    }
+                }
             }
-            Box(
-                modifier = Modifier
-                    .height(250.dp)
-                    .padding(start = 10.dp, end = 10.dp, bottom = 20.dp)
-            ) {
-                Text(
-                    text = stringResource(id = R.string.restaurant_cat_stores_favorite),
-                    fontSize = 23.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = Color.Black,
+            if (uiState.selectedProductCategory != null) {
+                Row(
                     modifier = Modifier
                         .fillMaxWidth()
-                )
-                LazyRow {
-
-                }
-            }
-            Box(
-                modifier = Modifier
-                    .height(250.dp)
-                    .padding(start = 10.dp, end = 10.dp, bottom = 20.dp)
-            ) {
-                Text(
-                    text = stringResource(id = R.string.restaurant_cat_stores_best_rated),
-                    fontSize = 23.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = Color.Black,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                )
-                LazyRow {
-
-                }
-            }
-            Text(
-                text = stringResource(id = R.string.restaurant_cat_stores_explore),
-                fontSize = 23.sp,
-                fontWeight = FontWeight.Bold,
-                color = Color.Black,
-                modifier = Modifier
-                    .padding(start = 10.dp)
-                    .fillMaxWidth()
-            )
-            when (storesExplore.loadState.refresh) {
-                is LoadState.Error -> {
-
-                }
-
-                LoadState.Loading -> {
-
-                }
-
-                is LoadState.NotLoading -> {
-                    LazyColumn(
+                        .padding(horizontal = 10.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.End
+                ) {
+                    Card(
+                        elevation = CardDefaults.cardElevation(
+                            defaultElevation = 4.dp
+                        ),
+                        shape = RoundedCornerShape(4.dp),
                         modifier = Modifier
-                            .padding(5.dp)
-                            .heightIn(max = 1000.dp)
-                            .nestedScroll(connection = object : NestedScrollConnection {
-                                override fun onPreScroll(
-                                    available: Offset,
-                                    source: NestedScrollSource
-                                ): Offset {
-                                    if (scrollState.canScrollForward && available.y < 0) {
-                                        val consumed = scrollState.dispatchRawDelta(-available.y)
-                                        return Offset(x = 0f, y = -consumed)
-                                    }
-                                    return Offset.Zero
-                                }
-                            })
+                            .width(160.dp)
+                            .height(40.dp)
                     ) {
-                        items(
-                            count = storesExplore.itemCount,
-                            key = storesExplore.itemKey { item -> item.id }
-                        ) { index ->
-                            val store = storesExplore[index]
-                            if (store != null) {
-                                StoreItem(
-                                    store = store,
-                                    onClick = onStore
+                        Row(
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .padding(5.dp),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxHeight()
+                                    .padding(3.dp)
+                                    .weight(1f),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Text(
+                                    text = uiState.selectedProductCategory.name,
+                                    textAlign = TextAlign.Center,
+                                    color = Color.Black,
+                                    fontSize = 15.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    maxLines = 1,
+                                    overflow = TextOverflow.Ellipsis
+                                )
+                            }
+                            IconButton(
+                                modifier = Modifier
+                                    .size(35.dp),
+                                onClick = { onIntent(StoreIntent.UpdateCurrentProductCategory(null)) }
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Filled.Close,
+                                    contentDescription = "Clear category search"
                                 )
                             }
                         }
                     }
                 }
-            }
-        }
-    }
-}
+                when (productSearch.loadState.refresh) {
+                    is LoadState.Error -> {
 
-@Composable
-fun ProductCategoryItem(
-    productCategory: ProductCategory,
-    onClick: () -> Unit
-) {
-    Box(
-        modifier = Modifier
-            .padding(3.dp)
-            .size(100.dp)
-            .minimumInteractiveComponentSize()
-            .clickable { onClick() },
-        contentAlignment = Alignment.Center
-    ) {
-        Column(
-            modifier = Modifier
-                .fillMaxSize(),
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-            Image(
-                painter = painterResource(id = productCategory.drawable),
-                contentDescription = stringResource(id = R.string.restaurant_cat_specific_img_content_desc),
-                modifier = Modifier
-                    .padding(5.dp)
-                    .size(50.dp)
-            )
-            Spacer(modifier = Modifier.height(10.dp))
-            Text(
-                text = productCategory.title,
-                fontSize = 16.sp,
-                color = Color.Black,
-                textAlign = TextAlign.Center,
-                fontWeight = FontWeight.Medium,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis
-            )
+                    }
+
+                    LoadState.Loading -> {
+
+                    }
+
+                    is LoadState.NotLoading -> {
+                        LazyColumn(
+                            modifier = Modifier
+                                .padding(5.dp)
+                                .heightIn(max = 1000.dp)
+                                .nestedScroll(connection = object : NestedScrollConnection {
+                                    override fun onPreScroll(
+                                        available: Offset,
+                                        source: NestedScrollSource
+                                    ): Offset {
+                                        if (scrollState.canScrollForward && available.y < 0) {
+                                            val consumed =
+                                                scrollState.dispatchRawDelta(-available.y)
+                                            return Offset(x = 0f, y = -consumed)
+                                        }
+                                        return Offset.Zero
+                                    }
+                                })
+                        ) {
+                            items(count = productSearch.itemCount) { index ->
+                                val hit = productSearch[index]
+                                if (hit != null) {
+                                    when (hit.type) {
+                                        SearchableTypes.PRODUCTS -> {
+                                            val product = hit as ProductSearchDomain
+                                            StoreProductCategorySearchItem(
+                                                hit = product,
+                                                onClick = { productId, storeOwnerId ->
+                                                    onProductHitItemClick(productId, storeOwnerId)
+                                                }
+                                            )
+                                        }
+
+                                        else -> {}
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            } else {
+                Box(
+                    modifier = Modifier
+                        .height(250.dp)
+                        .padding(start = 10.dp, end = 10.dp, bottom = 20.dp)
+                ) {
+                    Text(
+                        text = stringResource(id = R.string.restaurant_cat_stores_favorite),
+                        fontSize = 23.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = Color.Black,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                    )
+                    LazyRow {
+
+                    }
+                }
+                Box(
+                    modifier = Modifier
+                        .height(250.dp)
+                        .padding(start = 10.dp, end = 10.dp, bottom = 20.dp)
+                ) {
+                    Text(
+                        text = stringResource(id = R.string.restaurant_cat_stores_best_rated),
+                        fontSize = 23.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = Color.Black,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                    )
+                    LazyRow {
+
+                    }
+                }
+                Text(
+                    text = stringResource(id = R.string.restaurant_cat_stores_explore),
+                    fontSize = 23.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = Color.Black,
+                    modifier = Modifier
+                        .padding(start = 10.dp)
+                        .fillMaxWidth()
+                )
+                when (storesExplore.loadState.refresh) {
+                    is LoadState.Error -> {
+
+                    }
+
+                    LoadState.Loading -> {
+
+                    }
+
+                    is LoadState.NotLoading -> {
+                        LazyColumn(
+                            modifier = Modifier
+                                .padding(5.dp)
+                                .heightIn(max = 1000.dp)
+                                .nestedScroll(connection = object : NestedScrollConnection {
+                                    override fun onPreScroll(
+                                        available: Offset,
+                                        source: NestedScrollSource
+                                    ): Offset {
+                                        if (scrollState.canScrollForward && available.y < 0) {
+                                            val consumed =
+                                                scrollState.dispatchRawDelta(-available.y)
+                                            return Offset(x = 0f, y = -consumed)
+                                        }
+                                        return Offset.Zero
+                                    }
+                                })
+                        ) {
+                            items(
+                                count = storesExplore.itemCount,
+                                key = storesExplore.itemKey { item -> item.id }
+                            ) { index ->
+                                val store = storesExplore[index]
+                                if (store != null) {
+                                    StoreItem(
+                                        store = store,
+                                        onClick = onStore
+                                    )
+                                }
+                            }
+                        }
+                    }
+                }
+            }
         }
     }
 }

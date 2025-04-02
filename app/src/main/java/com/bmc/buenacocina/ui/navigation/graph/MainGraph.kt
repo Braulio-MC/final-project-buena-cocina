@@ -52,9 +52,24 @@ fun MainGraph(
                     launchSingleTop = true
                 }
             },
+            onHomeTopSoldProductClick = { productId, storeOwnerId ->
+                navController.navigate(
+                    Screen.MainSerializable.ProductDetailed(
+                        productId,
+                        storeOwnerId
+                    )
+                ) {
+                    launchSingleTop = true
+                }
+            },
             onSearchBackButton = onSearchBackButton,
             onSearchProductHitItemClick = { productId, storeOwnerId ->
-                navController.navigate(Screen.MainSerializable.ProductDetailed(productId, storeOwnerId)) {
+                navController.navigate(
+                    Screen.MainSerializable.ProductDetailed(
+                        productId,
+                        storeOwnerId
+                    )
+                ) {
                     launchSingleTop = true
                 }
             },
@@ -71,7 +86,12 @@ fun MainGraph(
             },
             onProductFavoriteBackButton = onProductFavoriteBackButton,
             onProductFavoriteItemClick = { productId, storeOwnerId ->
-                navController.navigate(Screen.MainSerializable.ProductDetailed(productId, storeOwnerId)) {
+                navController.navigate(
+                    Screen.MainSerializable.ProductDetailed(
+                        productId,
+                        storeOwnerId
+                    )
+                ) {
                     launchSingleTop = true
                 }
             },
@@ -86,10 +106,25 @@ fun MainGraph(
                     launchSingleTop = true
                 }
             },
+            onStoreCategoryProductHitItemClick = { productId, storeOwnerId ->
+                navController.navigate(
+                    Screen.MainSerializable.ProductDetailed(
+                        productId,
+                        storeOwnerId
+                    )
+                ) {
+                    launchSingleTop = true
+                }
+            },
             onDetailedStoreBackButton = onDetailedStoreBackButton,
             onStoreReviewBackButton = onStoreReviewBackButton,
             onDetailedStoreProductClick = { productId, storeOwnerId ->
-                navController.navigate(Screen.MainSerializable.ProductDetailed(productId, storeOwnerId)) {
+                navController.navigate(
+                    Screen.MainSerializable.ProductDetailed(
+                        productId,
+                        storeOwnerId
+                    )
+                ) {
                     launchSingleTop = true
                 }
             },

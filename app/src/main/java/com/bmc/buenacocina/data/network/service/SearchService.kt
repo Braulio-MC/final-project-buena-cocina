@@ -4,12 +4,9 @@ import com.algolia.client.api.SearchClient
 import com.algolia.client.model.search.SearchForHits
 import com.algolia.client.model.search.SearchMethodParams
 import com.algolia.client.model.search.SearchResponse
-import com.bmc.buenacocina.core.ALGOLIA_SEARCH_PRODUCTS_INDEX
-import com.bmc.buenacocina.core.ALGOLIA_SEARCH_STORES_INDEX
 import com.bmc.buenacocina.core.SEARCH_MULTI_INDEX_HITS_PER_PAGE
 import com.bmc.buenacocina.common.Searchable
-import com.bmc.buenacocina.data.network.model.toProductNetwork
-import com.bmc.buenacocina.data.network.model.toStoreNetwork
+import com.bmc.buenacocina.domain.toSearchable
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import javax.inject.Inject
@@ -35,13 +32,7 @@ class SearchService @Inject constructor(
             )
         )
         val hits = response.results.flatMap { searchResponse ->
-            (searchResponse as SearchResponse).hits.map { hit ->
-                when (searchResponse.index) {
-                    ALGOLIA_SEARCH_PRODUCTS_INDEX -> hit.toProductNetwork()
-                    ALGOLIA_SEARCH_STORES_INDEX -> hit.toStoreNetwork()
-                    else -> throw IllegalArgumentException("Invalid index name")
-                }
-            }
+            (searchResponse as SearchResponse).hits.map { it.toSearchable(searchResponse.index) }
         }
         emit(hits)
     }

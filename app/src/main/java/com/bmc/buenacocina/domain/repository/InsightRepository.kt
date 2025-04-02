@@ -7,6 +7,7 @@ import com.bmc.buenacocina.domain.error.handleApiException
 import com.bmc.buenacocina.domain.error.handleApiFailure
 import com.bmc.buenacocina.domain.mapper.asDomain
 import com.bmc.buenacocina.domain.model.InsightTopLocationDomain
+import com.bmc.buenacocina.domain.model.InsightTopSoldProductDomain
 import com.skydoves.sandwich.ApiResponse
 import com.skydoves.sandwich.retrofit.statusCode
 import java.time.LocalDate
@@ -35,6 +36,31 @@ class InsightRepository @Inject constructor(
             is ApiResponse.Success -> {
                 val domain = response.data.points.map { point ->
                     point.asDomain()
+                }
+                Result.Success(domain)
+            }
+        }
+    }
+
+    suspend fun getTopSoldProducts(
+        startDate: LocalDate? = null,
+        endDate: LocalDate? = null
+    ): Result<List<InsightTopSoldProductDomain>, DataError> {
+        return when (val response = insightService.getTopSoldProducts(
+            startDate?.format(DateTimeFormatter.ISO_LOCAL_DATE),
+            endDate?.format(DateTimeFormatter.ISO_LOCAL_DATE)
+        )) {
+            is ApiResponse.Failure.Error -> {
+                Result.Error(handleApiFailure(response.statusCode))
+            }
+
+            is ApiResponse.Failure.Exception -> {
+                Result.Error(handleApiException(response.throwable))
+            }
+
+            is ApiResponse.Success -> {
+                val domain = response.data.products.map { product ->
+                    product.asDomain()
                 }
                 Result.Success(domain)
             }

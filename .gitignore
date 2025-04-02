@@ -30,6 +30,7 @@ output.json
 /.idea/deploymentTargetSelector.xml
 /.idea/inspectionProfiles/Project_Default.xml
 /.idea/kotlinc.xml
+/.idea/AndroidProjectSystem.xml
 misc.xml
 deploymentTargetDropDown.xml
 render.experimental.xml

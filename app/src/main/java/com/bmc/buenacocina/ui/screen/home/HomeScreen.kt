@@ -11,8 +11,10 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -20,6 +22,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.Button
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.SheetState
@@ -41,6 +44,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.constraintlayout.compose.ConstraintLayout
@@ -50,6 +54,9 @@ import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.bmc.buenacocina.R
 import com.bmc.buenacocina.ui.viewmodel.HomeViewModel
+import java.time.LocalDate
+import java.time.format.DateTimeFormatter
+import java.util.Locale
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -62,7 +69,8 @@ fun HomeScreen(
     onStoreCategoryButton: () -> Unit,
     onLogoutButton: (Boolean) -> Unit,
     onStoreFavoritesButton: () -> Unit,
-    onProductFavoritesButton: () -> Unit
+    onProductFavoritesButton: () -> Unit,
+    onTopSoldProductClick: (String, String) -> Unit
 ) {
     val uiState = viewModel.uiState.collectAsStateWithLifecycle()
     var showProfileBottomSheet by rememberSaveable {
@@ -90,7 +98,8 @@ fun HomeScreen(
         scrollState = scrollState,
         onProfileImage = { showProfileBottomSheet = true },
         onSearchBarButton = onSearchBarButton,
-        onStoreCategoryButton = onStoreCategoryButton
+        onStoreCategoryButton = onStoreCategoryButton,
+        onTopSoldProductClick = onTopSoldProductClick
     )
 }
 
@@ -101,9 +110,13 @@ fun HomeScreenContent(
     scrollState: ScrollState,
     onProfileImage: () -> Unit,
     onSearchBarButton: () -> Unit,
-    onStoreCategoryButton: () -> Unit
+    onStoreCategoryButton: () -> Unit,
+    onTopSoldProductClick: (String, String) -> Unit
 ) {
     val userName = uiState.userProfile?.name ?: ""
+    val now = LocalDate.now().format(DateTimeFormatter.ofPattern("dd MMM", Locale.getDefault()))
+    val sevenDaysAgo = LocalDate.now().minusDays(7)
+        .format(DateTimeFormatter.ofPattern("dd MMM", Locale.getDefault()))
 
     Column(
         modifier = Modifier
@@ -226,7 +239,7 @@ fun HomeScreenContent(
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(20.dp)
+                .padding(15.dp)
         ) {
             Column(
                 modifier = Modifier
@@ -253,21 +266,58 @@ fun HomeScreenContent(
             }
         }
         Text(
-            text = "Productos mejor calificados",
+            text = "Mas vendidos de la semana",
             fontSize = 20.sp,
             fontWeight = FontWeight.Bold,
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(start = 20.dp, end = 20.dp)
+                .padding(horizontal = 20.dp)
         )
-//        LazyColumn(
-//            modifier = Modifier
-//                .heightIn(max = 1000.dp)
-//            // .nestedScroll()  // Nested scroll for best-rated products
-//        ) {
-//            items(10) { index ->
-//
-//            }
-//        }
+        Text(
+            text = "$sevenDaysAgo al $now",
+            textAlign = TextAlign.Start,
+            fontSize = 16.sp,
+            fontWeight = FontWeight.SemiBold,
+            color = Color.Gray,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis,
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 20.dp)
+        )
+        if (uiState.isLoadingTopSoldProducts) {
+            Box(
+                modifier = Modifier
+                    .padding(horizontal = 20.dp)
+                    .fillMaxWidth()
+                    .height(200.dp),
+                contentAlignment = Alignment.Center
+            ) {
+                CircularProgressIndicator(
+                    modifier = Modifier
+                        .size(40.dp)
+                )
+            }
+        } else {
+            if (uiState.topSoldProducts.isEmpty()) {
+                HomeTopSoldProductEmpty()
+            } else {
+                LazyColumn(
+                    modifier = Modifier
+                        .heightIn(max = 1000.dp)
+                        .padding(5.dp)
+                ) {
+                    items(count = uiState.topSoldProducts.size) { index ->
+                        val product = uiState.topSoldProducts[index]
+                        HomeTopSoldProductItem(
+                            product = product,
+                            onClick = { productId, storeOwnerId ->
+                                onTopSoldProductClick(productId, storeOwnerId)
+                            }
+                        )
+                    }
+                }
+            }
+        }
     }
 }

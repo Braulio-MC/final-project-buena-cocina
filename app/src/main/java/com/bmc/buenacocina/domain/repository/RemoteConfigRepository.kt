@@ -5,6 +5,8 @@ import com.bmc.buenacocina.core.CUCEI_CENTER_ON_GMAPS_NAME
 import com.bmc.buenacocina.core.DEFAULT_CUCEI_CENTER_ON_GMAPS_NAME
 import com.bmc.buenacocina.core.DEFAULT_LATITUDE_CUCEI_CENTER_ON_GMAPS
 import com.bmc.buenacocina.core.DEFAULT_LONGITUDE_CUCEI_CENTER_ON_GMAPS
+import com.bmc.buenacocina.core.REMOTE_CONFIG_PRODUCT_CATEGORIES_NAME
+import com.bmc.buenacocina.domain.model.RemoteConfigProductCategoryDomain
 import com.google.android.gms.maps.model.LatLng
 import com.google.firebase.remoteconfig.ConfigUpdate
 import com.google.firebase.remoteconfig.ConfigUpdateListener
@@ -26,10 +28,14 @@ class RemoteConfigRepository @Inject constructor(
     val cuceiCenterOnMap: Flow<Pair<String, LatLng>?> = _cuceiCenterOnMap
     private val _cuceiAreaBoundsOnMap = MutableStateFlow<List<Pair<String, LatLng>>?>(null)
     val cuceiAreaBoundsOnMap: Flow<List<Pair<String, LatLng>>?> = _cuceiAreaBoundsOnMap
+    private val _productCategories =
+        MutableStateFlow<List<RemoteConfigProductCategoryDomain>>(emptyList())
+    val productCategories: Flow<List<RemoteConfigProductCategoryDomain>> = _productCategories
 
     init {
         _cuceiCenterOnMap.value = fetchCuceiCenter()
         _cuceiAreaBoundsOnMap.value = fetchCuceiAreaBounds()
+        _productCategories.value = fetchProductCategories()
         fetchCuceiLocationData()
     }
 
@@ -43,6 +49,9 @@ class RemoteConfigRepository @Inject constructor(
                         }
                         if (configUpdate.updatedKeys.contains(CUCEI_AREA_BOUNDS_ON_GMAPS_NAME)) {
                             _cuceiAreaBoundsOnMap.value = fetchCuceiAreaBounds()
+                        }
+                        if (configUpdate.updatedKeys.contains(REMOTE_CONFIG_PRODUCT_CATEGORIES_NAME)) {
+                            _productCategories.value = fetchProductCategories()
                         }
                     }
                 }
@@ -75,5 +84,18 @@ class RemoteConfigRepository @Inject constructor(
             bounds.add(name to LatLng(lat, lng))
         }
         return bounds
+    }
+
+    private fun fetchProductCategories(): List<RemoteConfigProductCategoryDomain> {
+        val jsonStr = firebaseRemoteConfig.getString(REMOTE_CONFIG_PRODUCT_CATEGORIES_NAME)
+        val categories = mutableListOf<RemoteConfigProductCategoryDomain>()
+        val jsonArray = Json.parseToJsonElement(jsonStr).jsonArray
+        for (category in jsonArray) {
+            val categoryObj = category.jsonObject
+            val name = categoryObj["name"]?.jsonPrimitive?.content ?: "Unknown"
+            val icon = categoryObj["icon"]?.jsonPrimitive?.content ?: ""
+            categories.add(RemoteConfigProductCategoryDomain(name, icon))
+        }
+        return categories
     }
 }
