@@ -21,4 +21,15 @@ object AlgoliaModule {
         val client = SearchClient(appId, searchApiKey)
         return client
     }
+
+    @Provides
+    fun provideAlgoliaClientFactory(@ApplicationContext context: Context): AlgoliaClientFactory {
+        return object : AlgoliaClientFactory {
+            override fun create(scopedSecuredApiKey: String): SearchClient {
+                val appId = context.getString(R.string.algolia_search_app_id)
+                val client = SearchClient(appId, scopedSecuredApiKey)
+                return client
+            }
+        }
+    }
 }

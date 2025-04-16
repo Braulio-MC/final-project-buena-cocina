@@ -32,8 +32,10 @@ import androidx.compose.material3.minimumInteractiveComponentSize
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.material3.windowsizeclass.WindowSizeClass
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -42,6 +44,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
@@ -76,6 +79,7 @@ fun HomeScreen(
     var showProfileBottomSheet by rememberSaveable {
         mutableStateOf(false)
     }
+    var topSoldProductsStartedLoading by remember { mutableStateOf(false) }
 
     if (showProfileBottomSheet) {
         ProfileBottomSheet(
@@ -92,9 +96,16 @@ fun HomeScreen(
         )
     }
 
+    LaunchedEffect(uiState.value.isLoadingTopSoldProducts) {
+        if (uiState.value.isLoadingTopSoldProducts) {
+            topSoldProductsStartedLoading = true
+        }
+    }
+
     HomeScreenContent(
         windowSizeClass = windowSizeClass,
         uiState = uiState.value,
+        topSoldProductsStartedLoading = topSoldProductsStartedLoading,
         scrollState = scrollState,
         onProfileImage = { showProfileBottomSheet = true },
         onSearchBarButton = onSearchBarButton,
@@ -107,6 +118,7 @@ fun HomeScreen(
 fun HomeScreenContent(
     windowSizeClass: WindowSizeClass,
     uiState: HomeUiState,
+    topSoldProductsStartedLoading: Boolean,
     scrollState: ScrollState,
     onProfileImage: () -> Unit,
     onSearchBarButton: () -> Unit,
@@ -201,8 +213,6 @@ fun HomeScreenContent(
                     onClick = {
                         onSearchBarButton()
                     },
-                    modifier = Modifier
-                        .minimumInteractiveComponentSize(),
                     shape = RoundedCornerShape(10.dp)
                 ) {
                     Row(
@@ -212,7 +222,7 @@ fun HomeScreenContent(
                         horizontalArrangement = Arrangement.Center
                     ) {
                         Text(
-                            text = "Buscar tiendas o productos",
+                            text = stringResource(id = R.string.search_button_text),
                             fontSize = 17.sp,
                             fontWeight = FontWeight.Normal,
                             modifier = Modifier
@@ -220,7 +230,7 @@ fun HomeScreenContent(
                         )
                         Icon(
                             imageVector = Icons.Filled.Search,
-                            contentDescription = "Search",
+                            contentDescription = stringResource(id = R.string.search_bar_icon_content_desc),
                             modifier = Modifier
                                 .size(35.dp)
                         )
@@ -299,7 +309,7 @@ fun HomeScreenContent(
                 )
             }
         } else {
-            if (uiState.topSoldProducts.isEmpty()) {
+            if (uiState.topSoldProducts.isEmpty() && topSoldProductsStartedLoading) {
                 HomeTopSoldProductEmpty()
             } else {
                 LazyColumn(

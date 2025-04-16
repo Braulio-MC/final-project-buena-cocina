@@ -13,6 +13,10 @@ class UserRepository @Inject constructor(
         return userService.getUserProfile()
     }
 
+    suspend fun getAccessToken(): Result<String, AuthError> {
+        return userService.getAccessToken()
+    }
+
     suspend fun getUserId(): Result<String, AuthError> {
         return userService.getUserId()
     }

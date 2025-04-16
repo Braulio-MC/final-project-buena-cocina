@@ -4,6 +4,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Search
@@ -17,6 +18,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -96,9 +98,17 @@ fun SearchScreenContent(
                             )
                         },
                         expanded = false,
-                        onExpandedChange = {}
+                        onExpandedChange = {},
+                        shape = RoundedCornerShape(
+                            topStart = 16.dp,
+                            topEnd = 16.dp,
+                            bottomEnd = 0.dp,
+                            bottomStart = 0.dp
+                        )
                     ) {}
-                }
+                },
+                modifier = Modifier
+                    .padding(vertical = 10.dp)
             )
         }
     ) { paddingValues ->
@@ -124,6 +134,8 @@ fun SearchScreenContent(
                             onClick = onStoreHitItemClick
                         )
                     }
+
+                    else -> {}
                 }
             }
         }

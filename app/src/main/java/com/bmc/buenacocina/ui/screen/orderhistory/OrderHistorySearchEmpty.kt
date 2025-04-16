@@ -22,9 +22,7 @@ import androidx.compose.ui.unit.sp
 import com.bmc.buenacocina.R
 
 @Composable
-fun OrderHistoryEmpty(
-    modifier: Modifier
-) {
+fun OrderHistorySearchEmpty(modifier: Modifier) {
     Column(
         modifier = modifier
             .fillMaxSize(),
@@ -32,34 +30,22 @@ fun OrderHistoryEmpty(
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Image(
-            painter = painterResource(id = R.drawable.orders_empty),
+            painter = painterResource(id = R.drawable.orders_search_empty),
             contentDescription = null,
             modifier = Modifier
                 .size(140.dp)
         )
         Spacer(modifier = Modifier.height(20.dp))
         Text(
-            text = "No hay pedidos disponibles",
-            textAlign = TextAlign.Center,
-            fontSize = 23.sp,
-            fontWeight = FontWeight.SemiBold,
-            maxLines = 1,
-            overflow = TextOverflow.Ellipsis,
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 10.dp)
-        )
-        Spacer(modifier = Modifier.height(10.dp))
-        Text(
-            text = "Agrega productos al carrito y crea un pedido para ver aqui los pedidos que has realizado",
+            text = "No se encontraron pedidos que coincidan con tu búsqueda",
             textAlign = TextAlign.Center,
             fontSize = 17.sp,
-            fontWeight = FontWeight.Light,
-            maxLines = 5,
+            fontWeight = FontWeight.Normal,
+            maxLines = 2,
             overflow = TextOverflow.Ellipsis,
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 10.dp)
+                .padding(horizontal = 20.dp)
         )
     }
 }

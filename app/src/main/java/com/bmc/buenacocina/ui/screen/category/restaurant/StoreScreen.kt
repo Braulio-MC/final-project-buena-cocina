@@ -16,6 +16,8 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
@@ -36,7 +38,6 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.TopAppBarScrollBehavior
 import androidx.compose.material3.TopAppBarState
-import androidx.compose.material3.minimumInteractiveComponentSize
 import androidx.compose.material3.rememberTopAppBarState
 import androidx.compose.material3.windowsizeclass.WindowSizeClass
 import androidx.compose.runtime.Composable
@@ -139,20 +140,20 @@ fun StoreScreenContent(
                 scrollBehavior = scrollBehavior
             )
         }
-    ) {
+    ) { paddingValues ->
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(it)
+                .padding(paddingValues)
                 .verticalScroll(scrollState)
         ) {
             Button(
                 onClick = {
                     onSearchBarButton()
                 },
+                shape = RoundedCornerShape(10.dp),
                 modifier = Modifier
                     .padding(20.dp)
-                    .minimumInteractiveComponentSize()
             ) {
                 Row(
                     modifier = Modifier
@@ -210,7 +211,7 @@ fun StoreScreenContent(
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(horizontal = 10.dp),
+                        .padding(horizontal = 10.dp, vertical = 5.dp),
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.End
                 ) {
@@ -227,7 +228,6 @@ fun StoreScreenContent(
                             modifier = Modifier
                                 .fillMaxSize()
                                 .padding(5.dp),
-                            horizontalArrangement = Arrangement.SpaceBetween,
                             verticalAlignment = Alignment.CenterVertically
                         ) {
                             Box(
@@ -250,7 +250,7 @@ fun StoreScreenContent(
                             IconButton(
                                 modifier = Modifier
                                     .size(35.dp),
-                                onClick = { onIntent(StoreIntent.UpdateCurrentProductCategory(null)) }
+                                onClick = { onIntent(StoreIntent.UpdateCurrentProductCategory()) }
                             ) {
                                 Icon(
                                     imageVector = Icons.Filled.Close,
@@ -266,43 +266,61 @@ fun StoreScreenContent(
                     }
 
                     LoadState.Loading -> {
-
+                        LazyColumn(
+                            modifier = Modifier
+                                .padding(10.dp)
+                                .heightIn(max = 1000.dp)
+                        ) {
+                            items(4) {
+                                StoreProductCategorySearchItemShimmer()
+                            }
+                        }
                     }
 
                     is LoadState.NotLoading -> {
-                        LazyColumn(
-                            modifier = Modifier
-                                .padding(5.dp)
-                                .heightIn(max = 1000.dp)
-                                .nestedScroll(connection = object : NestedScrollConnection {
-                                    override fun onPreScroll(
-                                        available: Offset,
-                                        source: NestedScrollSource
-                                    ): Offset {
-                                        if (scrollState.canScrollForward && available.y < 0) {
-                                            val consumed =
-                                                scrollState.dispatchRawDelta(-available.y)
-                                            return Offset(x = 0f, y = -consumed)
+                        if (productSearch.itemCount == 0) {
+                            StoreProductCategorySearchEmpty(
+                                modifier = Modifier
+                                    .padding(horizontal = 10.dp, vertical = 50.dp)
+                            )
+                        } else {
+                            LazyColumn(
+                                modifier = Modifier
+                                    .padding(10.dp)
+                                    .heightIn(max = 1000.dp)
+                                    .nestedScroll(connection = object : NestedScrollConnection {
+                                        override fun onPreScroll(
+                                            available: Offset,
+                                            source: NestedScrollSource
+                                        ): Offset {
+                                            if (scrollState.canScrollForward && available.y < 0) {
+                                                val consumed =
+                                                    scrollState.dispatchRawDelta(-available.y)
+                                                return Offset(x = 0f, y = -consumed)
+                                            }
+                                            return Offset.Zero
                                         }
-                                        return Offset.Zero
-                                    }
-                                })
-                        ) {
-                            items(count = productSearch.itemCount) { index ->
-                                val hit = productSearch[index]
-                                if (hit != null) {
-                                    when (hit.type) {
-                                        SearchableTypes.PRODUCTS -> {
-                                            val product = hit as ProductSearchDomain
-                                            StoreProductCategorySearchItem(
-                                                hit = product,
-                                                onClick = { productId, storeOwnerId ->
-                                                    onProductHitItemClick(productId, storeOwnerId)
-                                                }
-                                            )
-                                        }
+                                    })
+                            ) {
+                                items(count = productSearch.itemCount) { index ->
+                                    val hit = productSearch[index]
+                                    if (hit != null) {
+                                        when (hit.type) {
+                                            SearchableTypes.PRODUCTS -> {
+                                                val product = hit as ProductSearchDomain
+                                                StoreProductCategorySearchItem(
+                                                    hit = product,
+                                                    onClick = { productId, storeOwnerId ->
+                                                        onProductHitItemClick(
+                                                            productId,
+                                                            storeOwnerId
+                                                        )
+                                                    }
+                                                )
+                                            }
 
-                                        else -> {}
+                                            else -> {}
+                                        }
                                     }
                                 }
                             }
@@ -310,23 +328,6 @@ fun StoreScreenContent(
                     }
                 }
             } else {
-                Box(
-                    modifier = Modifier
-                        .height(250.dp)
-                        .padding(start = 10.dp, end = 10.dp, bottom = 20.dp)
-                ) {
-                    Text(
-                        text = stringResource(id = R.string.restaurant_cat_stores_favorite),
-                        fontSize = 23.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = Color.Black,
-                        modifier = Modifier
-                            .fillMaxWidth()
-                    )
-                    LazyRow {
-
-                    }
-                }
                 Box(
                     modifier = Modifier
                         .height(250.dp)
@@ -359,38 +360,55 @@ fun StoreScreenContent(
                     }
 
                     LoadState.Loading -> {
-
+                        LazyVerticalGrid(
+                            columns = GridCells.Fixed(count = 2),
+                            modifier = Modifier
+                                .padding(10.dp)
+                                .heightIn(max = 1000.dp)
+                        ) {
+                            items(4) {
+                                StoreItemShimmer()
+                            }
+                        }
                     }
 
                     is LoadState.NotLoading -> {
-                        LazyColumn(
-                            modifier = Modifier
-                                .padding(5.dp)
-                                .heightIn(max = 1000.dp)
-                                .nestedScroll(connection = object : NestedScrollConnection {
-                                    override fun onPreScroll(
-                                        available: Offset,
-                                        source: NestedScrollSource
-                                    ): Offset {
-                                        if (scrollState.canScrollForward && available.y < 0) {
-                                            val consumed =
-                                                scrollState.dispatchRawDelta(-available.y)
-                                            return Offset(x = 0f, y = -consumed)
+                        if (storesExplore.itemCount == 0) {
+                            StoreEmpty(
+                                modifier = Modifier
+                                    .padding(10.dp)
+                            )
+                        } else {
+                            LazyVerticalGrid(
+                                columns = GridCells.Fixed(count = 2),
+                                modifier = Modifier
+                                    .padding(10.dp)
+                                    .heightIn(max = 1000.dp)
+                                    .nestedScroll(connection = object : NestedScrollConnection {
+                                        override fun onPreScroll(
+                                            available: Offset,
+                                            source: NestedScrollSource
+                                        ): Offset {
+                                            if (scrollState.canScrollForward && available.y < 0) {
+                                                val consumed =
+                                                    scrollState.dispatchRawDelta(-available.y)
+                                                return Offset(x = 0f, y = -consumed)
+                                            }
+                                            return Offset.Zero
                                         }
-                                        return Offset.Zero
+                                    })
+                            ) {
+                                items(
+                                    count = storesExplore.itemCount,
+                                    key = storesExplore.itemKey { item -> item.id }
+                                ) { index ->
+                                    val store = storesExplore[index]
+                                    if (store != null) {
+                                        StoreItem(
+                                            store = store,
+                                            onClick = onStore
+                                        )
                                     }
-                                })
-                        ) {
-                            items(
-                                count = storesExplore.itemCount,
-                                key = storesExplore.itemKey { item -> item.id }
-                            ) { index ->
-                                val store = storesExplore[index]
-                                if (store != null) {
-                                    StoreItem(
-                                        store = store,
-                                        onClick = onStore
-                                    )
                                 }
                             }
                         }

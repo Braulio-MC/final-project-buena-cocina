@@ -8,6 +8,7 @@ import com.bmc.buenacocina.core.BASE_API_OK_HTTP_CLIENT_WRITE_TIMEOUT_IN_SEC
 import com.bmc.buenacocina.core.PY_API_OK_HTTP_CLIENT_CONNECTION_TIMEOUT_IN_SEC
 import com.bmc.buenacocina.core.PY_API_OK_HTTP_CLIENT_READ_TIMEOUT_IN_SEC
 import com.bmc.buenacocina.core.PY_API_OK_HTTP_CLIENT_WRITE_TIMEOUT_IN_SEC
+import com.bmc.buenacocina.data.network.service.AlgoliaTokenService
 import com.bmc.buenacocina.data.network.service.GetStreamChannelService
 import com.bmc.buenacocina.data.network.service.GetStreamTokenService
 import com.bmc.buenacocina.data.network.service.InsightService
@@ -126,6 +127,12 @@ object NetworkModule {
     @Singleton
     fun provideGetStreamChannelService(@BaseApi retrofit: Retrofit): GetStreamChannelService {
         return retrofit.create(GetStreamChannelService::class.java)
+    }
+
+    @Provides
+    @Singleton
+    fun provideAlgoliaTokenService(@BaseApi retrofit: Retrofit): AlgoliaTokenService {
+        return retrofit.create(AlgoliaTokenService::class.java)
     }
 
     @Provides

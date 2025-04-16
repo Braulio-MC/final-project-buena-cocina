@@ -18,6 +18,15 @@ class UserService @Inject constructor(
         }
     }
 
+    suspend fun getAccessToken(): Result<String, AuthError> {
+        return if (auth0Manager.hasValidCredentials()) {
+            val accessToken = auth0Manager.awaitCredentials().accessToken
+            Result.Success(accessToken)
+        } else {
+            Result.Error(AuthError.NOT_AUTHENTICATED)
+        }
+    }
+
     suspend fun getUserId(): Result<String, AuthError> {
         return if (auth0Manager.hasValidCredentials()) {
             return when (val userId = auth0Manager.awaitCredentials().user.getId()) {

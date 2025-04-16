@@ -6,7 +6,6 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
@@ -18,8 +17,6 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Store
 import androidx.compose.material.icons.outlined.Star
 import androidx.compose.material.icons.outlined.StarBorder
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -69,145 +66,137 @@ fun StoreProductCategorySearchItem(
         discountPercentage = FormatUtils.formatDiscountPercentage(hit.discount.percentage)
     }
 
-    Card(
-        elevation = CardDefaults.cardElevation(defaultElevation = 5.dp),
-        shape = RoundedCornerShape(10.dp),
+    Row(
         modifier = Modifier
-            .padding(10.dp)
+            .padding(5.dp)
             .fillMaxWidth()
-            .heightIn(min = 100.dp)
-            .clickable { onClick(hit.id, hit.store.ownerId) }
+            .heightIn(min = 115.dp)
+            .clickable { onClick(hit.id, hit.store.ownerId) },
+        verticalAlignment = Alignment.CenterVertically
     ) {
-        Row(
+        Box(
             modifier = Modifier
-                .fillMaxWidth()
-                .padding(10.dp),
-            verticalAlignment = Alignment.CenterVertically
+                .size(100.dp)
+                .clip(RoundedCornerShape(8.dp)),
+            contentAlignment = Alignment.Center
         ) {
-            Box(
+            AsyncImage(
+                model = ImageRequest.Builder(LocalContext.current)
+                    .data(hit.image)
+                    .crossfade(true)
+                    .build(),
+                contentDescription = "Search result product image",
+                contentScale = ContentScale.Crop,
+                alignment = Alignment.Center,
                 modifier = Modifier
-                    .size(105.dp)
-                    .clip(RoundedCornerShape(8.dp)),
-                contentAlignment = Alignment.Center
-            ) {
-                AsyncImage(
-                    model = ImageRequest.Builder(LocalContext.current)
-                        .data(hit.image)
-                        .crossfade(true)
-                        .build(),
-                    contentDescription = "Search result product image",
-                    contentScale = ContentScale.Crop,
-                    alignment = Alignment.Center,
+                    .fillMaxSize()
+            )
+            if (discountPercentage != null) {
+                SearchProductItemDiscount(
+                    percentage = discountPercentage,
                     modifier = Modifier
-                        .fillMaxSize()
+                        .align(Alignment.BottomCenter)
+                        .padding(1.dp)
                 )
-                if (discountPercentage != null) {
-                    SearchProductItemDiscount(
-                        percentage = discountPercentage,
-                        modifier = Modifier
-                            .align(Alignment.BottomCenter)
-                            .padding(1.dp)
-                    )
-                }
             }
-            Spacer(modifier = Modifier.width(8.dp))
-            Column(
+        }
+        Spacer(modifier = Modifier.width(8.dp))
+        Column(
+            modifier = Modifier
+                .weight(1f),
+            verticalArrangement = Arrangement.Center
+        ) {
+            Text(
+                text = hit.name,
+                fontSize = 18.sp,
+                fontWeight = FontWeight.Bold,
+                color = Color.Black,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
                 modifier = Modifier
-                    .weight(1f)
-                    .fillMaxHeight(),
-                verticalArrangement = Arrangement.Center
+                    .fillMaxWidth()
+            )
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically
             ) {
                 Text(
-                    text = hit.name,
-                    fontSize = 18.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = Color.Black,
+                    text = hit.type.type,
+                    fontSize = 15.5.sp,
+                    fontWeight = FontWeight.Light,
+                    fontStyle = FontStyle.Italic,
+                    color = Color.Gray,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis,
                     modifier = Modifier
-                        .fillMaxWidth()
+                        .weight(0.5f)
                 )
                 Row(
+                    verticalAlignment = Alignment.CenterVertically,
                     modifier = Modifier
-                        .fillMaxWidth(),
-                    verticalAlignment = Alignment.CenterVertically
+                        .weight(1f)
                 ) {
                     Text(
-                        text = hit.type.type,
+                        text = hit.store.name,
+                        textAlign = storeNameTextAlign,
                         fontSize = 15.5.sp,
-                        fontWeight = FontWeight.Light,
                         fontStyle = FontStyle.Italic,
-                        color = Color.Gray,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis,
-                        modifier = Modifier
-                            .weight(0.5f)
-                    )
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
+                        onTextLayout = { textLayoutResult ->
+                            isStoreNameOverFlowing = textLayoutResult.hasVisualOverflow
+                        },
                         modifier = Modifier
                             .weight(1f)
-                    ) {
-                        Text(
-                            text = hit.store.name,
-                            textAlign = storeNameTextAlign,
-                            fontSize = 15.5.sp,
-                            fontStyle = FontStyle.Italic,
-                            maxLines = 1,
-                            overflow = TextOverflow.Ellipsis,
-                            onTextLayout = { textLayoutResult ->
-                                isStoreNameOverFlowing = textLayoutResult.hasVisualOverflow
-                            },
-                            modifier = Modifier
-                                .weight(1f)
-                        )
-                        Spacer(modifier = Modifier.width(2.dp))
-                        Icon(
-                            imageVector = Icons.Filled.Store,
-                            contentDescription = "",
-                            modifier = Modifier
-                                .size(25.dp)
-                        )
-                    }
+                    )
+                    Spacer(modifier = Modifier.width(2.dp))
+                    Icon(
+                        imageVector = Icons.Filled.Store,
+                        contentDescription = "",
+                        modifier = Modifier
+                            .size(25.dp)
+                    )
                 }
+            }
+            Text(
+                text = hit.description,
+                fontSize = 13.sp,
+                fontWeight = FontWeight.Normal,
+                color = Color.Black,
+                maxLines = 2,
+                overflow = TextOverflow.Ellipsis,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 2.dp)
+            )
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(top = 4.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
                 Text(
-                    text = hit.description,
-                    fontSize = 13.sp,
-                    fontWeight = FontWeight.Normal,
-                    color = Color.Black,
-                    maxLines = 2,
-                    overflow = TextOverflow.Ellipsis,
-                    modifier = Modifier
-                        .fillMaxWidth()
+                    text = "${hit.totalReviews} reseñas",
+                    fontSize = 15.5.sp,
+                    fontWeight = FontWeight.Light,
+                    fontStyle = FontStyle.Italic,
+                    color = Color.Gray,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
                 )
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(top = 4.dp),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.SpaceBetween
-                ) {
-                    Text(
-                        text = "${hit.totalReviews} reseñas",
-                        fontSize = 15.5.sp,
-                        fontWeight = FontWeight.Light,
-                        fontStyle = FontStyle.Italic,
-                        color = Color.Gray,
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis
-                    )
-                    RatingBar(
-                        rating = hit.rating,
-                        imageVectorEmpty = Icons.Outlined.StarBorder,
-                        imageVectorFilled = Icons.Outlined.Star,
-                        space = 2.dp,
-                        itemSize = 20.dp,
-                        tintEmpty = colorResource(id = R.color.rating_bar_empty),
-                        tintFilled = colorResource(id = R.color.rating_bar_filled),
-                        gestureStrategy = GestureStrategy.None,
-                        onRatingChange = {}
-                    )
-                }
+                RatingBar(
+                    rating = hit.rating,
+                    imageVectorEmpty = Icons.Outlined.StarBorder,
+                    imageVectorFilled = Icons.Outlined.Star,
+                    space = 2.dp,
+                    itemSize = 20.dp,
+                    tintEmpty = colorResource(id = R.color.rating_bar_empty),
+                    tintFilled = colorResource(id = R.color.rating_bar_filled),
+                    gestureStrategy = GestureStrategy.None,
+                    onRatingChange = {}
+                )
             }
         }
     }

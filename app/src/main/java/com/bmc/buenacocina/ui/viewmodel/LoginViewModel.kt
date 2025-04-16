@@ -49,6 +49,7 @@ class LoginViewModel @Inject constructor(
         WebAuthProvider
             .login(auth0Account)
             .withScheme(c.getString(R.string.com_auth0_scheme))
+            .withAudience(c.getString(R.string.com_auth0_audience))
             .start(c, object : Callback<Credentials, AuthenticationException> {
                 override fun onFailure(error: AuthenticationException) {
                     onError()

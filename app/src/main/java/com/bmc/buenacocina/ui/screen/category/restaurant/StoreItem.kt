@@ -1,28 +1,31 @@
 package com.bmc.buenacocina.ui.screen.category.restaurant
 
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Star
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
@@ -41,27 +44,26 @@ fun StoreItem(
         1, RoundingMode.HALF_DOWN
     ).toPlainString() else "N/A"
 
-    Card(
-        elevation = CardDefaults.cardElevation(
-            defaultElevation = 5.dp
-        ),
-        shape = RoundedCornerShape(10.dp),
+
+    Column(
         modifier = Modifier
-            .padding(10.dp)
-            .fillMaxWidth()
-            .height(250.dp)
-            .clickable { onClick(store.id) }
+            .width(175.dp)
+            .height(190.dp)
+            .padding(5.dp)
+            .clickable { onClick(store.id) },
+        horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Column(
+        Box(
             modifier = Modifier
-                .padding(10.dp),
-            horizontalAlignment = Alignment.CenterHorizontally
+                .fillMaxWidth()
+                .height(125.dp)
+                .padding(3.dp)
+                .clip(RoundedCornerShape(5.dp)),
+            contentAlignment = Alignment.Center
         ) {
             AsyncImage(
                 modifier = Modifier
-                    .padding(bottom = 5.dp)
-                    .fillMaxWidth()
-                    .weight(1f),
+                    .fillMaxSize(),
                 model = ImageRequest.Builder(LocalContext.current)
                     .data(store.image)
                     .crossfade(true)
@@ -70,32 +72,42 @@ fun StoreItem(
                 contentScale = ContentScale.Crop,
                 alignment = Alignment.Center
             )
-            Text(
-                text = store.name,
-                fontSize = 20.sp,
-                color = Color.Black,
-                fontWeight = FontWeight.Bold,
+        }
+        Text(
+            text = store.name,
+            fontSize = 19.sp,
+            color = Color.Black,
+            fontWeight = FontWeight.Bold,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis,
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 5.dp, vertical = 2.dp)
+        )
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 5.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Icon(
+                imageVector = Icons.Filled.Star,
+                contentDescription = "",
+                tint = colorResource(id = R.color.rating_bar_filled),
                 modifier = Modifier
-                    .fillMaxWidth()
+                    .size(20.dp)
             )
-            Row(
+            Spacer(modifier = Modifier.width(3.dp))
+            Text(
+                text = storeRating,
+                fontSize = 16.sp,
+                color = Color.DarkGray,
+                fontWeight = FontWeight.SemiBold,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
                 modifier = Modifier
-                    .fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Icon(
-                    imageVector = Icons.Filled.Star,
-                    contentDescription = "",
-                    tint = colorResource(id = R.color.rating_bar_filled)
-                )
-                Spacer(modifier = Modifier.width(5.dp))
-                Text(
-                    text = storeRating,
-                    fontSize = 17.sp,
-                    color = Color.DarkGray,
-                    fontWeight = FontWeight.Bold,
-                )
-            }
+                    .weight(1f)
+            )
         }
     }
 }
