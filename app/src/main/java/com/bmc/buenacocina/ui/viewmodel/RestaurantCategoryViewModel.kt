@@ -5,6 +5,8 @@ import androidx.lifecycle.viewModelScope
 import androidx.paging.cachedIn
 import com.bmc.buenacocina.core.ALGOLIA_SEARCH_PRODUCTS_INDEX
 import com.bmc.buenacocina.core.SHARING_COROUTINE_TIMEOUT_IN_SEC
+import com.bmc.buenacocina.domain.Result
+import com.bmc.buenacocina.domain.repository.InsightRepository
 import com.bmc.buenacocina.domain.repository.RemoteConfigRepository
 import com.bmc.buenacocina.domain.repository.SearchRepository
 import com.bmc.buenacocina.domain.repository.StoreRepository
@@ -24,13 +26,15 @@ import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
 class RestaurantCategoryViewModel @Inject constructor(
     storeRepository: StoreRepository,
     private val remoteConfigRepository: RemoteConfigRepository,
-    private val searchRepository: SearchRepository
+    private val searchRepository: SearchRepository,
+    private val insightRepository: InsightRepository
 ) : ViewModel() {
     private val _uiState = MutableStateFlow(StoreUiState())
     val uiState: StateFlow<StoreUiState> = _uiState
@@ -50,17 +54,17 @@ class RestaurantCategoryViewModel @Inject constructor(
                     }
                 }
                 .launchIn(viewModelScope)
+            getTopRatedStores()
         }
         .stateIn(
             scope = viewModelScope,
             started = SharingStarted.WhileSubscribed(SHARING_COROUTINE_TIMEOUT_IN_SEC),
             initialValue = StoreUiState()
         )
-    private val storesBest = "storeRepository.get()"
-    private val storesFavorite = "storeRepository.get()"
     val storesExplore = storeRepository
         .paging()
         .cachedIn(viewModelScope)
+
     @OptIn(ExperimentalCoroutinesApi::class)
     val productSearch = uiState
         .map { it.selectedProductCategory }
@@ -79,6 +83,30 @@ class RestaurantCategoryViewModel @Inject constructor(
             is StoreIntent.UpdateCurrentProductCategory -> {
                 _uiState.update { currentState ->
                     currentState.copy(selectedProductCategory = intent.productCategory)
+                }
+            }
+        }
+    }
+
+    private fun getTopRatedStores() {
+        viewModelScope.launch {
+            _uiState.update { currentState ->
+                currentState.copy(isLoadingTopRatedStores = true)
+            }
+            when (val response = insightRepository.getTopRatedStores()) {
+                is Result.Error -> {
+                    _uiState.update { currentState ->
+                        currentState.copy(isLoadingTopRatedStores = false)
+                    }
+                }
+
+                is Result.Success -> {
+                    _uiState.update { currentState ->
+                        currentState.copy(
+                            isLoadingTopRatedStores = false,
+                            topRatedStores = response.data
+                        )
+                    }
                 }
             }
         }

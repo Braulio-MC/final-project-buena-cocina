@@ -1,6 +1,7 @@
 package com.bmc.buenacocina.data.network.service
 
 import com.bmc.buenacocina.data.network.model.InsightTopLocationResultNetwork
+import com.bmc.buenacocina.data.network.model.InsightTopRatedStoreResultNetwork
 import com.bmc.buenacocina.data.network.model.InsightTopSoldProductResultNetwork
 import com.skydoves.sandwich.ApiResponse
 import retrofit2.http.GET
@@ -19,4 +20,10 @@ interface InsightService {
         @Query("start_date") startDate: String? = null,
         @Query("end_date") endDate: String? = null
     ): ApiResponse<InsightTopSoldProductResultNetwork>
+
+    @GET("/insights/get-top-rated-stores")
+    suspend fun getTopRatedStores(
+        @Query("start") start: Float? = null,
+        @Query("end") end: Float? = null
+    ): ApiResponse<InsightTopRatedStoreResultNetwork>
 }

@@ -7,6 +7,7 @@ import com.bmc.buenacocina.domain.error.handleApiException
 import com.bmc.buenacocina.domain.error.handleApiFailure
 import com.bmc.buenacocina.domain.mapper.asDomain
 import com.bmc.buenacocina.domain.model.InsightTopLocationDomain
+import com.bmc.buenacocina.domain.model.InsightTopRatedStoreDomain
 import com.bmc.buenacocina.domain.model.InsightTopSoldProductDomain
 import com.skydoves.sandwich.ApiResponse
 import com.skydoves.sandwich.retrofit.statusCode
@@ -61,6 +62,28 @@ class InsightRepository @Inject constructor(
             is ApiResponse.Success -> {
                 val domain = response.data.products.map { product ->
                     product.asDomain()
+                }
+                Result.Success(domain)
+            }
+        }
+    }
+
+    suspend fun getTopRatedStores(
+        start: Float? = null,
+        end: Float? = null
+    ): Result<List<InsightTopRatedStoreDomain>, DataError> {
+        return when (val response = insightService.getTopRatedStores(start, end)) {
+            is ApiResponse.Failure.Error -> {
+                Result.Error(handleApiFailure(response.statusCode))
+            }
+
+            is ApiResponse.Failure.Exception -> {
+                Result.Error(handleApiException(response.throwable))
+            }
+
+            is ApiResponse.Success -> {
+                val domain = response.data.stores.map { store ->
+                    store.asDomain()
                 }
                 Result.Success(domain)
             }

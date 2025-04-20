@@ -328,21 +328,53 @@ fun StoreScreenContent(
                     }
                 }
             } else {
-                Box(
+                Text(
+                    text = stringResource(id = R.string.restaurant_cat_stores_best_rated),
+                    fontSize = 23.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = Color.Black,
                     modifier = Modifier
-                        .height(250.dp)
-                        .padding(start = 10.dp, end = 10.dp, bottom = 20.dp)
-                ) {
-                    Text(
-                        text = stringResource(id = R.string.restaurant_cat_stores_best_rated),
-                        fontSize = 23.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = Color.Black,
-                        modifier = Modifier
-                            .fillMaxWidth()
-                    )
-                    LazyRow {
+                        .fillMaxWidth()
+                        .padding(horizontal = 10.dp)
+                )
+                when {
+                    uiState.isLoadingTopRatedStores -> {
+                        LazyRow(
+                            modifier = Modifier
+                                .padding(10.dp)
+                        ) {
+                            items(5) {
+                                StoreItemShimmer()
+                            }
+                        }
+                    }
 
+                    uiState.topRatedStores.isEmpty() -> {
+                        StoreEmpty(
+                            modifier = Modifier
+                                .padding(10.dp)
+                        )
+                    }
+
+                    else -> {
+                        LazyRow(
+                            modifier = Modifier
+                                .padding(10.dp)
+                        ) {
+                            items(
+                                count = uiState.topRatedStores.size,
+                                key = { index -> uiState.topRatedStores[index].id }
+                            ) { index ->
+                                val store = uiState.topRatedStores[index]
+                                StoreItem(
+                                    storeId = store.id,
+                                    storeName = store.name,
+                                    storeImage = store.image,
+                                    storeRating = store.rating,
+                                    onClick = onStore
+                                )
+                            }
+                        }
                     }
                 }
                 Text(
@@ -351,8 +383,8 @@ fun StoreScreenContent(
                     fontWeight = FontWeight.Bold,
                     color = Color.Black,
                     modifier = Modifier
-                        .padding(start = 10.dp)
                         .fillMaxWidth()
+                        .padding(horizontal = 10.dp)
                 )
                 when (storesExplore.loadState.refresh) {
                     is LoadState.Error -> {
@@ -405,7 +437,10 @@ fun StoreScreenContent(
                                     val store = storesExplore[index]
                                     if (store != null) {
                                         StoreItem(
-                                            store = store,
+                                            storeId = store.id,
+                                            storeName = store.name,
+                                            storeImage = store.image,
+                                            storeRating = store.rating,
                                             onClick = onStore
                                         )
                                     }

@@ -31,16 +31,18 @@ import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.bmc.buenacocina.R
-import com.bmc.buenacocina.domain.model.StoreDomain
 import java.math.BigDecimal
 import java.math.RoundingMode
 
 @Composable
 fun StoreItem(
-    store: StoreDomain,
+    storeId: String,
+    storeName: String,
+    storeImage: String,
+    storeRating: BigDecimal,
     onClick: (String) -> Unit
 ) {
-    val storeRating = if (store.rating > BigDecimal.ZERO) store.rating.setScale(
+    val rating = if (storeRating > BigDecimal.ZERO) storeRating.setScale(
         1, RoundingMode.HALF_DOWN
     ).toPlainString() else "N/A"
 
@@ -50,7 +52,7 @@ fun StoreItem(
             .width(175.dp)
             .height(190.dp)
             .padding(5.dp)
-            .clickable { onClick(store.id) },
+            .clickable { onClick(storeId) },
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Box(
@@ -65,7 +67,7 @@ fun StoreItem(
                 modifier = Modifier
                     .fillMaxSize(),
                 model = ImageRequest.Builder(LocalContext.current)
-                    .data(store.image)
+                    .data(storeImage)
                     .crossfade(true)
                     .build(),
                 contentDescription = "",
@@ -74,7 +76,7 @@ fun StoreItem(
             )
         }
         Text(
-            text = store.name,
+            text = storeName,
             fontSize = 19.sp,
             color = Color.Black,
             fontWeight = FontWeight.Bold,
@@ -99,7 +101,7 @@ fun StoreItem(
             )
             Spacer(modifier = Modifier.width(3.dp))
             Text(
-                text = storeRating,
+                text = rating,
                 fontSize = 16.sp,
                 color = Color.DarkGray,
                 fontWeight = FontWeight.SemiBold,

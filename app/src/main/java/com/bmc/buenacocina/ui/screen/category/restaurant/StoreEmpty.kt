@@ -31,7 +31,7 @@ fun StoreEmpty(
         Image(
             painter = painterResource(id = R.drawable.store_empty),
             modifier = Modifier
-                .height(100.dp)
+                .height(80.dp)
                 .fillMaxWidth(),
             contentDescription = null
         )
