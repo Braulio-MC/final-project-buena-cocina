@@ -41,6 +41,7 @@ import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 import java.time.temporal.ChronoUnit
 import java.util.Locale
+import java.util.Calendar
 
 fun isPointInPolygon(point: LatLng, polygon: List<LatLng>): Boolean {
     var intersects = false
@@ -261,3 +262,17 @@ class FormatUtils {
         }
     }
 }
+
+fun getGreetingPerHour(): String {
+    val calendar = Calendar.getInstance()
+    val hour = calendar.get(Calendar.HOUR_OF_DAY)
+
+    return when (hour) {
+        in 5..11 -> "🌞 ¡Buenos días! Mi querido cuceimita, ¿En qué te puedo ayudar?"
+        in 12..18 -> "🌤️ ¡Buenas tardes! ¿Listo para comer algo sabroso?"
+        in 19..21 -> "🌙 ¡Buenas noches!... Nunca es tarde para un antojito"
+        in 22..23, in 0..4 -> "😴 No creo que haya alguien disponible ahora... pero si tienes hambre, ¡siempre hay algo que preparar!"
+        else -> "👋 ¡Hola! ¿En qué puedo ayudarte, my friend?"
+    }
+}
+

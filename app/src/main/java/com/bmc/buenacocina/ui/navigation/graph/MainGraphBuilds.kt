@@ -25,6 +25,7 @@ import com.bmc.buenacocina.ui.screen.storeReview.StoreReviewScreen
 import com.bmc.buenacocina.ui.screen.storefavorite.StoreFavoriteScreen
 import io.getstream.chat.android.compose.viewmodel.channels.ChannelViewModelFactory
 import io.getstream.chat.android.models.Channel
+import com.bmc.buenacocina.ui.screen.chatbot.ChatBotScreen
 
 fun NavGraphBuilder.mainGraph(
     windowSizeClass: WindowSizeClass,
@@ -152,6 +153,14 @@ fun NavGraphBuilder.mainGraph(
         detailedChatScreen(
             onBackButton = onDetailedChatBackButton
         )
+        chatBotScreen()
+    }
+}
+
+// 👉 Agregamos tu función abajo:
+fun NavGraphBuilder.chatBotScreen() {
+    composable(Screen.Main.ChatBot.route) {
+        ChatBotScreen()
     }
 }
 

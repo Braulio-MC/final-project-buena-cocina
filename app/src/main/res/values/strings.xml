@@ -3,8 +3,16 @@
 
     <!-- Auth0 -->
     <string name="com_auth0_scheme">app</string>
+    <string name="com_auth0_domain">a-b-c-d.us.auth0.com</string>
+    <string name="com_auth0_audience">https://resource-server</string>
+    <string name="com_auth0_client_id">dmwybkP2ppCNvuSbcrBPdduPCrYvlJJF</string>
 
     <!-- Get Stream -->
+    <string name="get_stream_api_key">2ds6du487f88</string>
+
+    <!-- Algolia -->
+    <string name="algolia_search_app_id">DY1CWSYKIY</string>
+    <string name="algolia_search_search_api_key">edd257b8cf42b136313a50223765f3c8</string>
 
     <!-- Api server -->
     <string name="base_api_server_url">http://10.0.2.2:5001</string>
@@ -17,11 +25,13 @@
     <string name="navigation_shopping_cart">Carrito</string>
     <string name="navigation_order_history">Historial</string>
     <string name="navigation_chat">Mensajes</string>
+    <string name="navigation_chatbot">Chatbot</string>
     <string name="navigation_profile">Perfil</string>
     <string name="navigation_home_content_desc">Navigation item for home</string>
     <string name="navigation_order_history_content_desc">Navigation item for order history</string>
     <string name="navigation_shopping_cart_content_desc">Navigation item for shopping cart</string>
     <string name="navigation_chat_content_desc">Navigation item for chat</string>
+    <string name="navigation_chatbot_content_desc">Navigation item for chatbot</string>
     <string name="navigation_profile_content_desc">Navigation item for profile</string>
 
     <!-- UI text data errors -->

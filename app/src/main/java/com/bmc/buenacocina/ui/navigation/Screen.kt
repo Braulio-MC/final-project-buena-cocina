@@ -12,6 +12,7 @@ sealed interface Screen {
         data object Search : Main("search")
         data object ShoppingCart : Main("shoppingCart")
         data object Chat : Main("chat")
+        data object ChatBot : Main("chatBot")
     }
 
     sealed class MainSerializable : Screen {

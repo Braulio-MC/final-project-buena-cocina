@@ -60,6 +60,31 @@ android {
 }
 
 dependencies {
+    // Retrofit - Cliente HTTP
+    implementation("com.squareup.retrofit2:retrofit:2.9.0")
+
+    // Converter para Moshi (Convertir JSON usando Moshi)
+    implementation ("com.squareup.retrofit2:converter-moshi:2.5.0")
+    implementation ("com.squareup.moshi:moshi:1.8.0")
+    implementation ("com.squareup.moshi:moshi-kotlin:1.8.0")
+    implementation("com.squareup.moshi:moshi-adapters:1.8.0")
+    implementation ("com.google.code.gson:gson:2.10.1")
+
+    // Moshi - Convertir JSON a objetos Kotlin
+    implementation("com.squareup.moshi:moshi:1.13.0")
+
+    // Adaptador Kotlin para Moshi (soporte de Kotlin)
+    implementation("com.squareup.moshi:moshi-kotlin:1.13.0")
+
+    // ViewModel para Compose
+    implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.6.2")
+    implementation ("androidx.compose.material3:material3:1.1.2")
+
+    // OkHttp - Cliente HTTP para Retrofit
+    implementation("com.squareup.okhttp3:okhttp:4.9.0")
+    implementation ("com.squareup.retrofit2:converter-gson:2.9.0")
+    implementation ("io.coil-kt:coil-compose:2.1.0")
+
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.androidx.activity.compose)

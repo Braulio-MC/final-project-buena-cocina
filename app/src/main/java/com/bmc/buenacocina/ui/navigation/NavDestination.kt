@@ -6,10 +6,12 @@ import androidx.compose.material.icons.filled.ChatBubble
 import androidx.compose.material.icons.filled.History
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.ShoppingCart
+import androidx.compose.material.icons.filled.SmartToy
 import androidx.compose.material.icons.outlined.ChatBubbleOutline
 import androidx.compose.material.icons.outlined.History
 import androidx.compose.material.icons.outlined.Home
 import androidx.compose.material.icons.outlined.ShoppingCart
+import androidx.compose.material.icons.outlined.SmartToy
 import androidx.compose.ui.graphics.vector.ImageVector
 import com.bmc.buenacocina.R
 
@@ -47,5 +49,13 @@ enum class NavDestination(
         unselectedIcon = Icons.Outlined.ChatBubbleOutline,
         contentDescription = R.string.navigation_chat_content_desc,
         route = Screen.Main.Chat.route
+    ),
+    CHATBOT(
+        label = R.string.navigation_chatbot,
+        selectedIcon = Icons.Filled.SmartToy, // Icono bonito para chatbot
+        unselectedIcon = Icons.Outlined.SmartToy, // Puedes usar el mismo si quieres
+        contentDescription = R.string.navigation_chatbot_content_desc,
+        route = Screen.Main.ChatBot.route
+
     )
 }
