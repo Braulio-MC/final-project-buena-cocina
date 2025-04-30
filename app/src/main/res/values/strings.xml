@@ -3,16 +3,6 @@
 
     <!-- Auth0 -->
     <string name="com_auth0_scheme">app</string>
-    <string name="com_auth0_domain">a-b-c-d.us.auth0.com</string>
-    <string name="com_auth0_audience">https://resource-server</string>
-    <string name="com_auth0_client_id">dmwybkP2ppCNvuSbcrBPdduPCrYvlJJF</string>
-
-    <!-- Get Stream -->
-    <string name="get_stream_api_key">2ds6du487f88</string>
-
-    <!-- Algolia -->
-    <string name="algolia_search_app_id">DY1CWSYKIY</string>
-    <string name="algolia_search_search_api_key">edd257b8cf42b136313a50223765f3c8</string>
 
     <!-- Api server -->
     <string name="base_api_server_url">http://10.0.2.2:5001</string>
