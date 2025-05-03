@@ -8,12 +8,16 @@ import com.bmc.buenacocina.core.BASE_API_OK_HTTP_CLIENT_WRITE_TIMEOUT_IN_SEC
 import com.bmc.buenacocina.core.PY_API_OK_HTTP_CLIENT_CONNECTION_TIMEOUT_IN_SEC
 import com.bmc.buenacocina.core.PY_API_OK_HTTP_CLIENT_READ_TIMEOUT_IN_SEC
 import com.bmc.buenacocina.core.PY_API_OK_HTTP_CLIENT_WRITE_TIMEOUT_IN_SEC
+import com.bmc.buenacocina.data.network.model.ChatBotApiResponse
 import com.bmc.buenacocina.data.network.service.AlgoliaTokenService
+import com.bmc.buenacocina.data.network.service.BotApiService
 import com.bmc.buenacocina.data.network.service.GetStreamChannelService
 import com.bmc.buenacocina.data.network.service.GetStreamTokenService
 import com.bmc.buenacocina.data.network.service.InsightService
 import com.bmc.buenacocina.data.network.service.ProductReviewAnalyzedService
 import com.bmc.buenacocina.data.network.service.StoreReviewAnalyzedService
+import com.google.gson.Gson
+import com.google.gson.GsonBuilder
 import com.skydoves.sandwich.retrofit.adapters.ApiResponseCallAdapterFactory
 import dagger.Module
 import dagger.Provides
@@ -85,6 +89,18 @@ object NetworkModule {
             .build()
     }
 
+    @PyApi
+    @Provides
+    @Singleton
+    fun providePyApiGson(): Gson {
+        return GsonBuilder()
+            .registerTypeAdapter(
+                ChatBotApiResponse::class.java,
+                ChatBotApiResponse.Adapter()
+            )
+            .create()
+    }
+
     @Singleton
     @BaseApi
     @Provides
@@ -106,12 +122,13 @@ object NetworkModule {
     @Provides
     fun providePyApiRetrofit(
         @PyApi okHttpClient: OkHttpClient,
+        @PyApi gson: Gson,
         @ApplicationContext context: Context
     ): Retrofit {
         val baseUrl = context.getString(R.string.py_api_server_url)
         return Retrofit.Builder()
             .baseUrl(baseUrl)
-            .addConverterFactory(GsonConverterFactory.create())
+            .addConverterFactory(GsonConverterFactory.create(gson))
             .addCallAdapterFactory(ApiResponseCallAdapterFactory.create())  // Sandwich integration
             .client(okHttpClient)
             .build()
@@ -151,5 +168,11 @@ object NetworkModule {
     @Singleton
     fun provideInsightService(@PyApi retrofit: Retrofit): InsightService {
         return retrofit.create(InsightService::class.java)
+    }
+
+    @Provides
+    @Singleton
+    fun provideBotService(@PyApi retrofit: Retrofit): BotApiService {
+        return retrofit.create(BotApiService::class.java)
     }
 }

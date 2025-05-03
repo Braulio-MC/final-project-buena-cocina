@@ -28,6 +28,7 @@ fun MainGraph(
     onShoppingCartBackButton: () -> Unit,
     onChatBackButton: () -> Unit,
     onDetailedChatBackButton: () -> Unit,
+    onBotHeaderBackButton: () -> Unit,
     onLogoutButton: (Boolean) -> Unit
 ) {
     NavHost(
@@ -187,6 +188,7 @@ fun MainGraph(
                 }
             },
             onDetailedChatBackButton = onDetailedChatBackButton,
+            onBotHeaderBackButton = onBotHeaderBackButton,
             onLogoutButton = onLogoutButton
         )
     }

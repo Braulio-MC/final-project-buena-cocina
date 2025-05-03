@@ -1,70 +1,83 @@
 package com.bmc.buenacocina.data.network.model
 
-import com.squareup.moshi.Json
-import com.squareup.moshi.JsonClass
+import com.google.gson.JsonDeserializationContext
+import com.google.gson.JsonDeserializer
+import com.google.gson.JsonElement
+import com.google.gson.JsonParseException
+import com.google.gson.annotations.SerializedName
+import java.lang.reflect.Type
 
-// Clase base sellada
-@JsonClass(generateAdapter = false) // No generamos el adaptador aquí
-sealed class ChatBotApiResponse{
+sealed class ChatBotApiResponse {
     data class Message(
-        @Json(name = "type") val type: String = "message",
-        @Json(name = "message") val message: String
+        val type: String = "message",
+        val message: String
     ) : ChatBotApiResponse()
 
     data class ProductResponse(
-        @Json(name = "type") val type: String = "product",
-        @Json(name = "data") val data: List<Product>
+        val type: String = "product",
+        val data: List<Product>
     ) : ChatBotApiResponse()
 
     data class StoreResponse(
-        @Json(name = "type") val type: String = "store",
-        @Json(name = "data") val data: List<Store>
+        val type: String = "store",
+        val data: List<Store>
     ) : ChatBotApiResponse()
 
+    class Adapter : JsonDeserializer<ChatBotApiResponse> {
+        override fun deserialize(
+            json: JsonElement,
+            typeOfT: Type,
+            context: JsonDeserializationContext
+        ): ChatBotApiResponse {
+            val jsonObject = json.asJsonObject
+            val type = jsonObject.get("type").asString
+
+            return when (type) {
+                "message" -> context.deserialize(json, Message::class.java)
+                "product" -> context.deserialize(json, ProductResponse::class.java)
+                "store" -> context.deserialize(json, StoreResponse::class.java)
+                else -> throw JsonParseException("Unknown type: $type")
+            }
+        }
+    }
 }
 
-
-// Modelos de Producto y Tienda
-@JsonClass(generateAdapter = true)
 data class Product(
-    val id: String,
-    val name: String,
-    val description: String,
-    val price: Double,
-    val discount: Discount?,
-    val rating: Double,
-    val store: StoreRef,
-    val image: String,
-    val category: List<String>,
-    val totalRating: Int,
-    val createdAt: String,
-    val quantity: Int
+    @SerializedName("id") val id: String,
+    @SerializedName("name") val name: String,
+    @SerializedName("description") val description: String,
+    @SerializedName("price") val price: Double,
+    @SerializedName("discount") val discount: Discount?,
+    @SerializedName("rating") val rating: Double,
+    @SerializedName("store") val store: StoreRef,
+    @SerializedName("image") val image: String,
+    @SerializedName("category") val category: List<String>,
+    @SerializedName("totalRating") val totalRating: Int,
+    @SerializedName("createdAt") val createdAt: String,
+    @SerializedName("quantity") val quantity: Int
 )
 
-@JsonClass(generateAdapter = true)
 data class Store(
-    val id: String,
-    val name: String,
-    val description: String,
-    val rating: Double,
-    val totalRating: Int,
-    val totalReviews: Int,
-    val phoneNumber: String,
-    val email: String,
-    val startTime: String,
-    val endTime: String
+    @SerializedName("id") val id: String,
+    @SerializedName("name") val name: String,
+    @SerializedName("description") val description: String,
+    @SerializedName("rating") val rating: Double,
+    @SerializedName("totalRating") val totalRating: Int,
+    @SerializedName("totalReviews") val totalReviews: Int,
+    @SerializedName("phoneNumber") val phoneNumber: String,
+    @SerializedName("email") val email: String,
+    @SerializedName("startTime") val startTime: String,
+    @SerializedName("endTime") val endTime: String
 )
 
-@JsonClass(generateAdapter = true)
 data class Discount(
-    val startDate: String,
-    val endDate: String,
-    val percentage: Int,
-    val id: String
+    @SerializedName("startDate") val startDate: String,
+    @SerializedName("endDate") val endDate: String,
+    @SerializedName("percentage") val percentage: Int,
+    @SerializedName("id") val id: String
 )
 
-@JsonClass(generateAdapter = true)
 data class StoreRef(
-    val id: String,
-    val name: String
+    @SerializedName("id") val id: String,
+    @SerializedName("name") val name: String
 )

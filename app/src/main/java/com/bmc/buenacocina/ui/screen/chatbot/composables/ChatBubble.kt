@@ -22,14 +22,13 @@ fun ChatBubble(message: ChatBotMessageNetwork) {
             .padding(vertical = 4.dp, horizontal = 8.dp),
         horizontalArrangement = if (message.isUser) Arrangement.End else Arrangement.Start
     ) {
-        if (!message.isUser) { // Si el mensaje es del bot
-            // Usar el Vector Drawable del bot (SVG)
+        if (!message.isUser) {
             Icon(
-                painter = painterResource(id = R.drawable.chatbot_icon), // Reemplaza con el nombre de tu archivo SVG
+                painter = painterResource(id = R.drawable.chatbot_icon),
                 contentDescription = "Bot Icon",
                 modifier = Modifier
-                    .size(60.dp) // Tamaño del ícono
-                    .padding(end = 8.dp), // Separación entre el ícono y el mensaje
+                    .size(60.dp)
+                    .padding(end = 8.dp),
                 tint = Color.Black,
             )
         }

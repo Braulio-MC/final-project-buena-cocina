@@ -66,6 +66,7 @@ fun NavGraphBuilder.mainGraph(
     onChatBackButton: () -> Unit,
     onChatItemClick: (Channel) -> Unit,
     onDetailedChatBackButton: () -> Unit,
+    onBotHeaderBackButton: () -> Unit,
     onLogoutButton: (Boolean) -> Unit
 ) {
     navigation(
@@ -153,14 +154,7 @@ fun NavGraphBuilder.mainGraph(
         detailedChatScreen(
             onBackButton = onDetailedChatBackButton
         )
-        chatBotScreen()
-    }
-}
-
-// 👉 Agregamos tu función abajo:
-fun NavGraphBuilder.chatBotScreen() {
-    composable(Screen.Main.ChatBot.route) {
-        ChatBotScreen()
+        chatBotScreen(onHeaderBackButton = onBotHeaderBackButton)
     }
 }
 
@@ -410,5 +404,13 @@ fun NavGraphBuilder.detailedChatScreen(
             channelId = nav.channelId,
             onBackButton = onBackButton
         )
+    }
+}
+
+fun NavGraphBuilder.chatBotScreen(
+    onHeaderBackButton: () -> Unit
+) {
+    composable(Screen.Main.ChatBot.route) {
+        ChatBotScreen(onHeaderBackButton = onHeaderBackButton)
     }
 }

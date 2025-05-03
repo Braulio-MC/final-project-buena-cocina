@@ -52,10 +52,9 @@ enum class NavDestination(
     ),
     CHATBOT(
         label = R.string.navigation_chatbot,
-        selectedIcon = Icons.Filled.SmartToy, // Icono bonito para chatbot
-        unselectedIcon = Icons.Outlined.SmartToy, // Puedes usar el mismo si quieres
+        selectedIcon = Icons.Filled.SmartToy,
+        unselectedIcon = Icons.Outlined.SmartToy,
         contentDescription = R.string.navigation_chatbot_content_desc,
         route = Screen.Main.ChatBot.route
-
     )
 }

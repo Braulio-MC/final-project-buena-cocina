@@ -137,6 +137,7 @@ fun MainScreenContent(
             onShoppingCartBackButton = popBackStack,
             onChatBackButton = popBackStack,
             onDetailedChatBackButton = popBackStack,
+            onBotHeaderBackButton = popBackStack,
             onLogoutButton = onLogoutButton
         )
     }

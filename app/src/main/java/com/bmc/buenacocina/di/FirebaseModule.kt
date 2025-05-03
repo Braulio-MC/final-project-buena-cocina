@@ -27,7 +27,7 @@ object FirebaseModule {
     @Singleton
     fun provideFirebaseFunctions(): FirebaseFunctions {
         val functions = FirebaseFunctions.getInstance()
-        functions.useEmulator("10.0.2.2", 5001) // 10.0.2.2 for local emulator
+        // functions.useEmulator("10.0.2.2", 5001) // 10.0.2.2 for local emulator
         return functions
     }
 

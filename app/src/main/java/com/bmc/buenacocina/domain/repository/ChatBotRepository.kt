@@ -1,12 +1,13 @@
 package com.bmc.buenacocina.domain.repository
 
 import android.util.Log
-import com.bmc.buenacocina.di.ChatBotNetwork
 import com.bmc.buenacocina.data.network.model.ChatBotApiResponse
+import com.bmc.buenacocina.data.network.service.BotApiService
+import javax.inject.Inject
 
-class ChatbotRepository {
-    private val apiService = ChatBotNetwork.botApiService
-
+class ChatbotRepository @Inject constructor(
+    private val apiService: BotApiService
+) {
     suspend fun getChatbotData(question: String): ChatBotApiResponse {
         return try {
             Log.d("ChatbotRepository", "Enviando consulta: $question")
