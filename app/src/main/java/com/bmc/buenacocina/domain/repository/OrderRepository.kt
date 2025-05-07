@@ -28,7 +28,7 @@ class OrderRepository @Inject constructor(
         dto: CreateOrderDto,
         lines: List<CreateOrderLineDto>,
         onSuccess: (String) -> Unit,
-        onFailure: (Exception) -> Unit
+        onFailure: (String, String) -> Unit
     ) {
         orderOrderLineMediator.createOrderWithOrderLines(dto, lines, onSuccess, onFailure)
     }
@@ -44,8 +44,8 @@ class OrderRepository @Inject constructor(
 
     fun delete(
         id: String,
-        onSuccess: () -> Unit,
-        onFailure: (Exception) -> Unit
+        onSuccess: (String) -> Unit,
+        onFailure: (String, String) -> Unit
     ) {
         orderService.delete(id, onSuccess, onFailure)
     }

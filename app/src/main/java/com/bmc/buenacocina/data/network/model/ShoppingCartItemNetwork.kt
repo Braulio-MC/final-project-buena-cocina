@@ -10,7 +10,6 @@ data class ShoppingCartItemNetwork(
     val cartId: String = "",
     val product: ShoppingCartItemProductNetwork = ShoppingCartItemProductNetwork(),
     val quantity: Int = 0,
-    val paginationKey: String = "",
     @ServerTimestamp
     val createdAt: Timestamp? = null,
     @ServerTimestamp

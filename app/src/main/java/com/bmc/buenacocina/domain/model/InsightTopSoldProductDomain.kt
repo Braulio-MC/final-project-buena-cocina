@@ -10,7 +10,7 @@ data class InsightTopSoldProductDomain(
     val name: String,
     val description: String,
     val image: String,
-    val categoryName: String,
+    val categories: List<InsightTopSoldProductCategoryDomain>,
     val storeName: String,
     val storeOwnerId: String,
     val discountPercentage: BigDecimal,
@@ -20,4 +20,9 @@ data class InsightTopSoldProductDomain(
     val totalReviews: BigInteger,
     val totalQuantitySold: BigInteger,
     val hitsOnOrders: BigInteger
-)
+) {
+    data class InsightTopSoldProductCategoryDomain(
+        val id: String,
+        val name: String
+    )
+}

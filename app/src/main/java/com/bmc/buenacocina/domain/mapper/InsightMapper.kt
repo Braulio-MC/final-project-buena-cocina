@@ -27,7 +27,12 @@ object InsightMapper {
             name = network.name,
             description = network.description,
             image = network.image,
-            categoryName = network.categoryName,
+            categories = network.categories.map {
+                InsightTopSoldProductDomain.InsightTopSoldProductCategoryDomain(
+                    id = it.id,
+                    name = it.name
+                )
+            },
             storeName = network.storeName,
             storeOwnerId = network.storeOwnerId,
             discountPercentage = network.discountPercentage.toBigDecimal(),

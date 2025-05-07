@@ -17,8 +17,7 @@ data class OrderNetwork(
     @ServerTimestamp
     val createdAt: Timestamp? = null,
     @ServerTimestamp
-    val updatedAt: Timestamp? = null,
-    val paginationKey: String = ""
+    val updatedAt: Timestamp? = null
 ) {
     data class OrderUserNetwork(
         val id: String = "",

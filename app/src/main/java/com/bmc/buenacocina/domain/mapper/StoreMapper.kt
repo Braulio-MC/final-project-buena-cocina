@@ -12,6 +12,14 @@ object StoreMapper {
             description = network.description,
             email = network.email,
             phoneNumber = network.phoneNumber,
+            startTime = StoreDomain.StoreWorkingHoursDomain(
+                hour = network.startTime.hour,
+                minute = network.startTime.minute
+            ),
+            endTime = StoreDomain.StoreWorkingHoursDomain(
+                hour = network.endTime.hour,
+                minute = network.endTime.minute
+            ),
             rating = network.rating.toBigDecimal(),
             totalRating = network.totalRating.toBigDecimal(),
             totalReviews = network.totalReviews.toBigInteger(),

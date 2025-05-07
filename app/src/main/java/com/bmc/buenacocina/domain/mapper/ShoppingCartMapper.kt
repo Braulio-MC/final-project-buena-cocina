@@ -14,6 +14,7 @@ object ShoppingCartMapper {
                 ownerId = network.store.ownerId,
                 name = network.store.name
             ),
+            itemCount = network.itemCount,
             createdAt = DateUtils.firebaseTimestampToLocalDateTime(network.createdAt),
             updatedAt = DateUtils.firebaseTimestampToLocalDateTime(network.updatedAt)
         )

@@ -37,7 +37,9 @@ class ShoppingCartShoppingCartItemMediator @Inject constructor(
                             shoppingCartService.delete(
                                 cartId,
                                 onSuccess = {},
-                                onFailure
+                                onFailure = { message, details ->
+                                    onFailure(Exception(details))
+                                }
                             )
                         }
                     )
@@ -46,7 +48,7 @@ class ShoppingCartShoppingCartItemMediator @Inject constructor(
             )
         } else {
             if (cart.store.id != productStoreId) {
-                onFailure(Exception("Store id does not match")) // Custom exception here
+                onFailure(Exception("Product store does not match shopping cart store"))
             } else {
                 val qItem: (Query) -> Query = { query ->
                     query.where(

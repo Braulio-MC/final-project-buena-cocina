@@ -309,16 +309,16 @@ class ShoppingCartViewModel @Inject constructor(
                                         storeName = storeName,
                                         userName = userName,
                                         itemCount = itemCount,
-                                        onSuccess = {
+                                        onSuccess = { message, validTokens ->
                                             processOrderSuccess()
                                         },
-                                        onFailure = { e ->
-                                            processOrderFailed(e)
+                                        onFailure = { message, details ->
+                                            processOrderFailed(Exception(message))
                                         }
                                     )
                                 },
-                                onFailure = { e ->
-                                    processOrderFailed(e)
+                                onFailure = { message, details ->
+                                    processOrderFailed(Exception(message))
                                 }
                             )
                         } catch (e: Exception) {

@@ -115,7 +115,7 @@ class MainActivity : ComponentActivity() {
         lifecycleScope.launch {
             tokenRepository.create(
                 onSuccess = { Log.d("MainActivity", "FCM token created") },
-                onFailure = { e -> e.printStackTrace() }
+                onFailure = { message, details -> Log.e("MainActivity", "$message: $details") }
             )
         }
     }

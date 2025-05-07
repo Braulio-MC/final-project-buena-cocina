@@ -11,7 +11,6 @@ import com.google.firebase.firestore.SetOptions
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
-import java.util.UUID
 import javax.inject.Inject
 
 class ProductReviewService @Inject constructor(
@@ -28,7 +27,6 @@ class ProductReviewService @Inject constructor(
             "productId" to dto.productId,
             "rating" to dto.rating,
             "comment" to dto.comment,
-            "paginationKey" to UUID.randomUUID().toString(),
             "createdAt" to FieldValue.serverTimestamp(),
             "updatedAt" to FieldValue.serverTimestamp()
         )
@@ -54,7 +52,6 @@ class ProductReviewService @Inject constructor(
                 "productId" to dto.productId,
                 "rating" to dto.rating,
                 "comment" to dto.comment,
-                "paginationKey" to UUID.randomUUID().toString(),
                 "createdAt" to FieldValue.serverTimestamp(),
                 "updatedAt" to FieldValue.serverTimestamp()
             )
@@ -84,7 +81,6 @@ class ProductReviewService @Inject constructor(
             val docRef = if (dto.id == null) {
                 upsert["userId"] = dto.userId
                 upsert["productId"] = dto.productId
-                upsert["paginationKey"] = UUID.randomUUID().toString()
                 upsert["createdAt"] = FieldValue.serverTimestamp()
                 firestore.collection(PRODUCT_REVIEW_COLLECTION_NAME).document()
             } else {

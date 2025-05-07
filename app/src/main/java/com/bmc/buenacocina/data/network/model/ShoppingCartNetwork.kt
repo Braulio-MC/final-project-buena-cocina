@@ -9,7 +9,7 @@ data class ShoppingCartNetwork (
     val documentId: String = "",
     val userId: String = "",
     val store: ShoppingCartStoreNetwork = ShoppingCartStoreNetwork(),
-    val paginationKey: String = "",
+    val itemCount: Int = 0,
     @ServerTimestamp
     val createdAt: Timestamp? = null,
     @ServerTimestamp

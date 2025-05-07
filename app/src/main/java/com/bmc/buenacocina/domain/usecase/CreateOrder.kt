@@ -26,8 +26,8 @@ class CreateOrder @Inject constructor(
         paymentMethodName: String,
         shoppingCartId: String,
         items: List<ShoppingCartItemDomain>,
-        onSuccess: () -> Unit,
-        onFailure: (Exception) -> Unit
+        onSuccess: (String) -> Unit,
+        onFailure: (String, String) -> Unit
     ) {
         val deliveryLocation = GeoPoint(deliveryLocationLatitude, deliveryLocationLongitude)
         val orderDto = makeCreateOrderDto(
@@ -48,14 +48,14 @@ class CreateOrder @Inject constructor(
                 shoppingCartRepository.delete(
                     shoppingCartId,
                     onSuccess,
-                    onFailure = { e ->
+                    onFailure = { message, details ->
                         // Rollback order creation
                         orderRepository.delete(
                             orderId,
                             onSuccess = {},
                             onFailure
                         )
-                        onFailure(e)
+                        onFailure(message, details)
                     }
                 )
             },

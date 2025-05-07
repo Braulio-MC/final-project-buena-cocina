@@ -101,7 +101,8 @@ fun DetailedStoreItem(
                     .padding(start = 3.dp)
             )
             Text(
-                text = product.category.name,
+                text = "${product.categories.size} categorias",
+                textAlign = TextAlign.End,
                 fontSize = 15.sp,
                 color = Color.Gray,
                 fontStyle = FontStyle.Italic,
@@ -110,7 +111,7 @@ fun DetailedStoreItem(
                 overflow = TextOverflow.Ellipsis,
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(start = 6.dp)
+                    .padding(end = 6.dp)
             )
             Row(
                 modifier = Modifier

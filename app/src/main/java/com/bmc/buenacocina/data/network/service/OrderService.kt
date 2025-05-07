@@ -8,10 +8,10 @@ import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.Query
 import com.google.firebase.functions.FirebaseFunctions
+import com.google.firebase.functions.FirebaseFunctionsException
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
-import java.util.UUID
 import javax.inject.Inject
 
 class OrderService @Inject constructor(
@@ -21,7 +21,7 @@ class OrderService @Inject constructor(
     fun create(
         dto: CreateOrderDto,
         onSuccess: (String) -> Unit,
-        onFailure: (Exception) -> Unit
+        onFailure: (String, String) -> Unit
     ) {
         val docRef = firestore.collection(ORDER_COLLECTION_NAME).document()
         val new = hashMapOf(
@@ -42,7 +42,6 @@ class OrderService @Inject constructor(
                 "id" to dto.paymentMethod.id,
                 "name" to dto.paymentMethod.name
             ),
-            "paginationKey" to UUID.randomUUID().toString(),
             "createdAt" to FieldValue.serverTimestamp(),
             "updatedAt" to FieldValue.serverTimestamp()
         )
@@ -50,8 +49,8 @@ class OrderService @Inject constructor(
             .addOnSuccessListener {
                 onSuccess(docRef.id)
             }
-            .addOnFailureListener { e ->
-                onFailure(e)
+            .addOnFailureListener { _ ->
+                onFailure("Order create error", "Unknown error")
             }
     }
 
@@ -77,8 +76,8 @@ class OrderService @Inject constructor(
 
     fun delete(
         id: String,
-        onSuccess: () -> Unit,
-        onFailure: (Exception) -> Unit
+        onSuccess: (String) -> Unit,
+        onFailure: (String, String) -> Unit
     ) {
         val fParams = hashMapOf(
             "collectionName" to ORDER_COLLECTION_NAME,
@@ -87,11 +86,29 @@ class OrderService @Inject constructor(
         functions
             .getHttpsCallable("recursiveCollectionDelete")
             .call(fParams)
-            .addOnSuccessListener {
-                onSuccess()
-            }
-            .addOnFailureListener { e ->
-                onFailure(e)
+            .addOnCompleteListener { task ->
+                if (task.isSuccessful) {
+                    val result = task.result?.data as? Map<*, *>
+                    when {
+                        result == null -> {
+                            onFailure("Unknown error", "Server did not return a response")
+                        }
+
+                        else -> {
+                            val message = result["message"] as? String ?: "Successfully deleted"
+                            onSuccess(message)
+                        }
+                    }
+                } else {
+                    val exception = task.exception
+                    if (exception is FirebaseFunctionsException) {
+                        val message = exception.message ?: "Order delete error"
+                        val details = exception.details?.toString() ?: ""
+                        onFailure(message, details)
+                    } else {
+                        onFailure("Unexpected error", "Unknown error")
+                    }
+                }
             }
     }
 

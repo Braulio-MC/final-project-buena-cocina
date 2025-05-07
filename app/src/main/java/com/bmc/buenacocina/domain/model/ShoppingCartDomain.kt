@@ -6,6 +6,7 @@ data class ShoppingCartDomain(
     val id: String,
     val userId: String,
     val store: ShoppingCartStoreDomain,
+    val itemCount: Int,
     val createdAt: LocalDateTime?,
     val updatedAt: LocalDateTime?
 ) {

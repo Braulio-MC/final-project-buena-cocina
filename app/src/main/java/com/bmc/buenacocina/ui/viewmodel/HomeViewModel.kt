@@ -80,8 +80,8 @@ class HomeViewModel @Inject constructor(
                 override fun onSuccess(result: Void?) {
                     viewModelScope.launch {
                         tokenRepository.remove(
-                            onSuccess = { },
-                            onFailure = { }
+                            onSuccess = { message, processedCount -> },
+                            onFailure = { message, details -> }
                         )
                         auth0Manager.clearCredentials()
                         chatRepository.disconnectUser()

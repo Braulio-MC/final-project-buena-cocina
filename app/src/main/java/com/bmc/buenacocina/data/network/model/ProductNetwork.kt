@@ -18,11 +18,10 @@ data class ProductNetwork(
     val quantity: Int = 0,
     val discount: ProductDiscountNetwork = ProductDiscountNetwork(),
     val store: ProductStoreNetwork = ProductStoreNetwork(),
-    val category: ProductCategoryNetwork = ProductCategoryNetwork(),
+    val categories: List<ProductCategoryNetwork> = emptyList(),
     val rating: Double = 0.0,
     val totalRating: Double = 0.0,
-    val totalReviews: Int = 0,
-    val paginationKey: String = ""
+    val totalReviews: Int = 0
 ) {
     data class ProductDiscountNetwork (
         val id: String = "",
@@ -39,7 +38,6 @@ data class ProductNetwork(
 
     data class ProductCategoryNetwork (
         val id: String = "",
-        val name: String = "",
-        val parentName: String = ""
+        val name: String = ""
     )
 }

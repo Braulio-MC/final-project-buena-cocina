@@ -3,7 +3,6 @@ package com.bmc.buenacocina.data.network.service
 import android.util.Log
 import com.bmc.buenacocina.di.AppDispatcher
 import com.bmc.buenacocina.di.AppDispatchers
-import com.bmc.buenacocina.domain.repository.TokenRepository
 import com.google.firebase.messaging.FirebaseMessagingService
 import com.google.firebase.messaging.RemoteMessage
 import dagger.hilt.android.AndroidEntryPoint
@@ -15,7 +14,7 @@ import javax.inject.Inject
 @AndroidEntryPoint
 class PushNotificationService : FirebaseMessagingService() {
     @Inject
-    lateinit var tokenRepository: TokenRepository
+    lateinit var tokenService: TokenService
 
     @Inject
     @AppDispatcher(AppDispatchers.IO)
@@ -24,13 +23,13 @@ class PushNotificationService : FirebaseMessagingService() {
     override fun onNewToken(token: String) {
         super.onNewToken(token)
         CoroutineScope(ioDispatcher).launch {
-            tokenRepository.create(
-                token,
-                onSuccess = { data ->
-                    Log.d("PushNotificationService", data.toString())
+            tokenService.create(
+                token = token,
+                onSuccess = { msg ->
+                    Log.d("PushNotificationService", msg)
                 },
-                onFailure = { e ->
-                    Log.d("PushNotificationService", e.toString())
+                onFailure = { msg, details ->
+                    Log.d("PushNotificationService", "$msg: $details")
                 }
             )
         }

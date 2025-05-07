@@ -11,7 +11,6 @@ import com.google.firebase.firestore.Query
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
-import java.util.UUID
 import javax.inject.Inject
 
 class ShoppingCartItemService @Inject constructor(
@@ -45,7 +44,6 @@ class ShoppingCartItemService @Inject constructor(
                     "endDate" to dto.product.discount.endDate
                 )
             ),
-            "paginationKey" to UUID.randomUUID().toString(),
             "createdAt" to FieldValue.serverTimestamp(),
             "updatedAt" to FieldValue.serverTimestamp(),
         )

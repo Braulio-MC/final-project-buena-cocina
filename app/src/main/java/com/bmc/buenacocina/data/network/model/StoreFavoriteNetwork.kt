@@ -17,6 +17,5 @@ data class StoreFavoriteNetwork(
     @ServerTimestamp
     val createdAt: Timestamp? = null,
     @ServerTimestamp
-    val updatedAt: Timestamp? = null,
-    val paginationKey: String = ""
+    val updatedAt: Timestamp? = null
 )

@@ -12,6 +12,7 @@ import com.bmc.buenacocina.domain.repository.StoreFavoriteRepository
 import com.bmc.buenacocina.domain.repository.StoreRepository
 import com.bmc.buenacocina.domain.repository.UserRepository
 import com.bmc.buenacocina.domain.Result
+import com.bmc.buenacocina.domain.model.StoreDomain
 import com.bmc.buenacocina.domain.model.StoreFavoriteDomain
 import com.bmc.buenacocina.domain.repository.StoreReviewRepository
 import com.bmc.buenacocina.ui.screen.detailed.store.DetailedStoreIntent
@@ -25,20 +26,25 @@ import dagger.assisted.AssistedInject
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import java.time.LocalTime
 
 @HiltViewModel(assistedFactory = DetailedStoreViewModel.DetailedStoreViewModelFactory::class)
 class DetailedStoreViewModel @AssistedInject constructor(
@@ -108,6 +114,20 @@ class DetailedStoreViewModel @AssistedInject constructor(
             started = SharingStarted.WhileSubscribed(SHARING_COROUTINE_TIMEOUT_IN_SEC),
             initialValue = NetworkStatus.Unavailable
         )
+    @OptIn(ExperimentalCoroutinesApi::class)
+    val isStoreOpenFlow: Flow<Boolean> = uiState
+        .map { it.store }
+        .distinctUntilChanged()
+        .filterNotNull()
+        .flatMapLatest { store ->
+            flow {
+                emit(calculateIsStoreOpen(store))
+                while (true) {
+                    delay(60_000)
+                    emit(calculateIsStoreOpen(store))
+                }
+            }
+        }
 
     fun onIntent(intent: DetailedStoreIntent) {
         when (intent) {
@@ -236,6 +256,13 @@ class DetailedStoreViewModel @AssistedInject constructor(
             }
             _events.send(DetailedStoreEvent.DeleteStoreFavoriteFailed(e))
         }
+    }
+
+    private fun calculateIsStoreOpen(store: StoreDomain): Boolean {
+        val now = LocalTime.now()
+        val openingTime = LocalTime.of(store.startTime.hour, store.startTime.minute)
+        val closingTime = LocalTime.of(store.endTime.hour, store.endTime.minute)
+        return now.isAfter(openingTime) && now.isBefore(closingTime)
     }
 
     @AssistedFactory

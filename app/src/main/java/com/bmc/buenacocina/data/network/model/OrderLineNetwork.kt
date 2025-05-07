@@ -9,7 +9,6 @@ data class OrderLineNetwork(
     val documentId: String = "",
     val quantity: Int = 0,
     val product: OrderLineProductNetwork = OrderLineProductNetwork(),
-    val paginationKey: String = "",
     @ServerTimestamp
     val createdAt: Timestamp? = null,
     @ServerTimestamp

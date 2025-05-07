@@ -59,8 +59,8 @@ class ShoppingCartRepository @Inject constructor(
 
     fun delete(
         id: String,
-        onSuccess: () -> Unit,
-        onFailure: (Exception) -> Unit
+        onSuccess: (String) -> Unit,
+        onFailure: (String, String) -> Unit
     ) {
         shoppingCartService.delete(id, onSuccess, onFailure)
     }

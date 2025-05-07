@@ -15,7 +15,7 @@ data class ProductDomain(
     val quantity: BigInteger,
     val discount: ProductDiscountDomain,
     val store: ProductStoreDomain,
-    val category: ProductCategoryDomain,
+    val categories: List<ProductCategoryDomain>,
     val rating: BigDecimal,
     val totalRating: BigDecimal,
     val totalReviews: BigInteger
@@ -35,7 +35,6 @@ data class ProductDomain(
 
     data class ProductCategoryDomain(
         val id: String,
-        val name: String,
-        val parentName: String
+        val name: String
     )
 }

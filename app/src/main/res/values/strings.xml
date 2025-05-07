@@ -75,7 +75,7 @@
 
     <!-- Restaurant category -->
     <string name="restaurant_cat_screen_title">Tiendas</string>
-    <string name="restaurant_cat_stores_best_rated">Tiendas mejor calificadas</string>
+    <string name="restaurant_cat_stores_best_rated">Con 4 estrellas o mas</string>
     <string name="restaurant_cat_stores_explore">Explora</string>
     <string name="restaurant_cat_specific_img_content_desc">Specific category image</string>
 

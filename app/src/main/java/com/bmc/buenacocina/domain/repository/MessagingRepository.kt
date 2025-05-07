@@ -12,8 +12,8 @@ class MessagingRepository @Inject constructor(
         topic: String,
         userId: String,
         storeId: String,
-        onSuccess: () -> Unit,
-        onFailure: (Exception) -> Unit
+        onSuccess: (String, Int) -> Unit,
+        onFailure: (String, String) -> Unit
     ) {
         messagingService.createTopic(topic, userId, storeId, onSuccess, onFailure)
     }
@@ -21,8 +21,8 @@ class MessagingRepository @Inject constructor(
     fun sendMessageToTopic(
         topic: String,
         notification: NotificationDomain,
-        onSuccess: () -> Unit,
-        onFailure: (Exception) -> Unit
+        onSuccess: (String) -> Unit,
+        onFailure: (String, String) -> Unit
     ) {
         val dto = notification.asNetwork()
         messagingService.sendMessageToTopic(topic, dto, onSuccess, onFailure)
@@ -31,8 +31,8 @@ class MessagingRepository @Inject constructor(
     fun sendMessageToUserDevices(
         userId: String,
         notification: NotificationDomain,
-        onSuccess: () -> Unit,
-        onFailure: (Exception) -> Unit
+        onSuccess: (String, Int) -> Unit,
+        onFailure: (String, String) -> Unit
     ) {
         val dto = notification.asNetwork()
         messagingService.sendMessageToUserDevices(userId, dto, onSuccess, onFailure)

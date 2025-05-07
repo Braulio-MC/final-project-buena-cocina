@@ -145,7 +145,7 @@ fun HomeTopSoldProductItem(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Text(
-                        text = product.categoryName,
+                        text = "${product.categories.size} categorias",
                         fontSize = 15.5.sp,
                         fontWeight = FontWeight.Light,
                         fontStyle = FontStyle.Italic,

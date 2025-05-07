@@ -9,7 +9,6 @@ import com.google.firebase.firestore.Query
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
-import java.util.UUID
 import javax.inject.Inject
 
 class StoreFavoriteService @Inject constructor(
@@ -31,8 +30,7 @@ class StoreFavoriteService @Inject constructor(
             "storeId" to dto.storeId,
             "userId" to dto.userId,
             "createdAt" to FieldValue.serverTimestamp(),
-            "updatedAt" to FieldValue.serverTimestamp(),
-            "paginationKey" to UUID.randomUUID().toString()
+            "updatedAt" to FieldValue.serverTimestamp()
         )
         docRef.set(new)
             .addOnSuccessListener {

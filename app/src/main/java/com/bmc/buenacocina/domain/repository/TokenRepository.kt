@@ -8,16 +8,16 @@ class TokenRepository @Inject constructor(
 ) {
     suspend fun create(
         token: String? = null,
-        onSuccess: (Any?) -> Unit,
-        onFailure: (Exception) -> Unit
+        onSuccess: (String) -> Unit,
+        onFailure: (String, String) -> Unit
     ) {
         tokenService.create(token, onSuccess, onFailure)
     }
 
     suspend fun remove(
         token: String? = null,
-        onSuccess: (Any?) -> Unit,
-        onFailure: (Exception) -> Unit
+        onSuccess: (String, Int) -> Unit,
+        onFailure: (String, String) -> Unit
     ) {
         tokenService.remove(token, onSuccess, onFailure)
     }

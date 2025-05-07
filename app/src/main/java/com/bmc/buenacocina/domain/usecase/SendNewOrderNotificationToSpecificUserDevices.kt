@@ -12,8 +12,8 @@ class SendNewOrderNotificationToSpecificUserDevices @Inject constructor(
         storeName: String,
         userName: String,
         itemCount: Int,
-        onSuccess: () -> Unit,
-        onFailure: (Exception) -> Unit
+        onSuccess: (String, Int) -> Unit,
+        onFailure: (String, String) -> Unit
     ) {
         val notification = buildNotification(storeName, userName, itemCount)
         messagingRepository.sendMessageToUserDevices(

@@ -10,6 +10,8 @@ data class StoreDomain(
     val description: String,
     val email: String,
     val phoneNumber: String,
+    val startTime: StoreWorkingHoursDomain,
+    val endTime: StoreWorkingHoursDomain,
     val rating: BigDecimal,
     val totalRating: BigDecimal,
     val totalReviews: BigInteger,
@@ -17,4 +19,9 @@ data class StoreDomain(
     val userId: String,
     val updatedAt: LocalDateTime?,
     val createdAt: LocalDateTime?
-)
+) {
+    data class StoreWorkingHoursDomain(
+        val hour: Int,
+        val minute: Int
+    )
+}

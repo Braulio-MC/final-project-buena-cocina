@@ -74,7 +74,7 @@ class RestaurantCategoryViewModel @Inject constructor(
             searchRepository.paging(
                 query = "",
                 indexName = ALGOLIA_SEARCH_PRODUCTS_INDEX,
-                filters = "category.name:\"${category.name}\""
+                filters = "categories.name:\"${category.name}\""
             ).cachedIn(viewModelScope)
         }
 

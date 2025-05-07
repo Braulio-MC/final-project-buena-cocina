@@ -9,7 +9,6 @@ data class PaymentMethodNetwork(
     val documentId: String = "",
     val name: String = "",
     val description: String = "",
-    val paginationKey: String = "",
     @ServerTimestamp
     val updatedAt: Timestamp? = null,
     @ServerTimestamp

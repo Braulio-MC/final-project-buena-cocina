@@ -12,7 +12,7 @@ class OrderOrderLineMediator @Inject constructor(
         dto: CreateOrderDto,
         lines: List<CreateOrderLineDto>,
         onSuccess: (String) -> Unit,
-        onFailure: (Exception) -> Unit
+        onFailure: (String, String) -> Unit
     ) {
         orderService.create(
             dto,
